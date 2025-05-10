@@ -353,6 +353,7 @@
                 <li><a href="#">Contact</a></li>
                 <div class="staff-login">
                     {% if user.is_authenticated %}
+                    Hello, <strong>{{ user.username }}</strong>!
                     <form action="{% url 'shared:logout' %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="login-btn">Logout</button>
