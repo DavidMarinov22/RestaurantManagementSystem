@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Name | Fine Dining Experience</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #fff;
+            background-color: #121212;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: #000;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #aaa;
+        }
+        
+        /* Hero section */
+        .hero {
+            position: relative;
+            height: 80vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            max-width: 800px;
+            padding: 20px;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            background-color: #aaa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Features section */
+        .features {
+            padding: 80px 0;
+            background-color: #1a1a1a;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            color: #fff;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background-color: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .feature-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .feature-content {
+            padding: 25px;
+        }
+        
+        .feature-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .feature-content p {
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        
+        /* Testimonials section */
+        .testimonials {
+            padding: 80px 0;
+            background-color: #121212;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .testimonial-card {
+            background-color: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .testimonial-content {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .testimonial-content p {
+            font-style: italic;
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .testimonial-author {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #000;
+            color: white;
+            padding: 60px 0 20px;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #aaa;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .footer-section a:hover {
+            color: #fff;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #777;
+        }
+        
+        /* Staff login dropdown */
+        .staff-login {
+            position: relative;
+            margin-left: 20px;
+        }
+        
+        .login-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #222;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .staff-login:hover .login-dropdown {
+            display: block;
+        }
+        
+        .login-dropdown a {
+            color: #ccc;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        
+        .login-dropdown a:hover {
+            background-color: #333;
+            color: #fff;
+        }
+        
+        .login-btn {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: white;
+            color: #000;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .staff-login {
+                margin: 15px 0;
+            }
+            
+            .login-dropdown {
+                position: static;
+                display: none;
+                width: 100%;
+            }
+            
+            .staff-login:hover .login-dropdown {
+                display: block;
+            }
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .menu-item {
+                flex-direction: column;
+            }
+            
+            .menu-image {
+                min-height: 200px;
+                width: 100%;
+            }
+            
+            .staff-login {
+                margin: 15px 0;
+            }
+            
+            .login-dropdown {
+                position: static;
+                display: none;
+                width: 100%;
+            }
+            
+            .staff-login:hover .login-dropdown {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with navigation -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo">Fine Taste</a>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Menu</a></li>
+                <li><a href="#">Reservations</a></li>
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Contact</a></li>
+                <div class="staff-login">
+                    <button class="login-btn">Staff Portal</button>
+                    <div class="login-dropdown">
+                        <a href="manager-login.html">Manager Login</a>
+                        <a href="staff-login.html">Staff Login</a>
+                    </div>
+                </div>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Hero section with welcome message -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Fine Taste</h1>
+            <p>Experience culinary excellence with our award-winning menu, featuring options for all dietary preferences.</p>
+            <a href="#" class="btn">Make a Reservation</a>
+        </div>
+    </section>
+
+    <!-- Features section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why Choose Us</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-image" style="background-image: url('https://t3.ftcdn.net/jpg/11/41/96/14/240_F_1141961477_o29OOzYoD5NDbxD7KUXJEUJ84ASpbaMG.jpg');">
+                    </div>
+                    <div class="feature-content">
+                        <h3>Make A Reservation</h3>
+                        <p>Our online reservation system makes arranging the perfect dinner quick, simple and easy.</p>
+                        <a href="#" class="btn">Book a Table</a>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-image" style="background-image: url('https://t3.ftcdn.net/jpg/01/27/65/58/240_F_127655811_iv0Vf94XxAy7hneGXka6C1kaT8jAe4qC.jpg');">
+                    </div>
+                    <div class="feature-content">
+                        <h3>About Us</h3>
+                        <p>Get to know our staff and what we stand for, as well as how to get in contact.</p>
+                        <a href="#" class="btn">Learn More</a>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-image" style="background-image: url('https://as2.ftcdn.net/v2/jpg/03/08/53/95/1000_F_308539522_d4km44ypn3GItmIiEbdLih6C1Qg6ZZy2.jpg');"></div>
+                    <div class="feature-content">
+                        <h3>Browse Our Menu</h3>
+                        <p>Our award-winning menu options, with options suitable for vegans and vegetarians.</p>
+                        <a href="#" class="btn">View Menu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials section instead of menu items -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Guests Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"An exceptional dining experience! The atmosphere was warm and inviting, and the service was impeccable."</p>
+                        <div class="testimonial-author">- Sarah J.</div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The perfect venue for our anniversary dinner. We'll definitely be coming back and bringing friends!"</p>
+                        <div class="testimonial-author">- Michael T.</div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"I appreciate that they cater to all dietary requirements without compromising on taste or presentation."</p>
+                        <div class="testimonial-author">- Emma P.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-section">
+                    <h3>Find Us</h3>
+                    <p>123 Gourmet Street</p>
+                    <p>Coventry, CV1 1AB</p>
+                    <p>Phone: 024 7654 3210</p>
+                    <p>Email: info@finetaste.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Opening Hours</h3>
+                    <p>Monday - Friday: 11:00 - 22:00</p>
+                    <p>Saturday: 10:00 - 23:00</p>
+                    <p>Sunday: 10:00 - 21:00</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="#">Reservations</a>
+                    <a href="#">Menu</a>
+                    <a href="#">Private Events</a>
+                    <a href="#">Gift Cards</a>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Basic JavaScript for dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Placeholder for future functionality
+            console.log('Restaurant website loaded successfully');
+        });
+    </script>
+</body>
+</html>
