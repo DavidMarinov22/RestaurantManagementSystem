@@ -19,12 +19,7 @@ from django.urls import path , include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
-    path('', include('shared.urls')),
+
+    path('', include(('shared.urls', "shared"), "shared")),
     path('customer/', include('customer.urls')),
 ]
-=======
-    path('', include(('shared.urls', "shared"), "shared")),
-
-]
->>>>>>> 5fbe6f0afb6e068ecbd036ff95504ec1af86ebc0

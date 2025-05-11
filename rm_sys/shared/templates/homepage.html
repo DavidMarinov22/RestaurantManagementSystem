@@ -360,11 +360,14 @@
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Contact</a></li>
                 <div class="staff-login">
-                    <button class="login-btn">Staff Portal</button>
-                    <div class="login-dropdown">
-                        <a href="/manager/login/">Manager Login</a>
-                        <a href="/staff/login/">Staff Login</a>
-                    </div>
+                     {% if user.is_authenticated %}
+                    <form action="{% url 'shared:logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="login-btn">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
+                    {% endif %}
                 </div>
             </ul>
         </div>
