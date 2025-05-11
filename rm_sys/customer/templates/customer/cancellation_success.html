@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancellation Successful - Fine Taste</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: #000 !important;
+        }
+        
+        .card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Fine Taste</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/menu/">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/tables/">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about/">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact/">Contact</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Staff Portal
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="staffDropdown">
+                            <li><a class="dropdown-item" href="/staff/login/">Staff Login</a></li>
+                            <li><a class="dropdown-item" href="/manager/login/">Manager Login</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="card shadow-lg text-center">
+                    <div class="card-body p-5">
+                        <div class="mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle-fill text-success" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                            </svg>
+                        </div>
+                        
+                        <h1 class="mb-3">Cancellation Successful</h1>
+                        <p class="lead mb-4">Your reservation has been successfully canceled.</p>
+                        
+                        <p class="mb-4">Thank you for letting us know. We hope to serve you another time soon!</p>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/customer/tables/" class="btn btn-primary btn-lg">Make a New Reservation</a>
+                            <a href="/" class="btn btn-outline-secondary">Return to Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Fine Taste</h5>
+                    <p>123 Gourmet Street<br>Coventry, CV1 1AB</p>
+                    <p>Phone: 024 7654 3210<br>Email: info@finetaste.com</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Opening Hours</h5>
+                    <p>Monday - Friday: 11:00 - 22:00<br>
+                       Saturday: 10:00 - 23:00<br>
+                       Sunday: 10:00 - 21:00</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/customer/tables/" class="text-light">Reservations</a></li>
+                        <li><a href="/customer/menu/" class="text-light">Menu</a></li>
+                        <li><a href="/customer/cancel-reservation/" class="text-light">Cancel Reservation</a></li>
+                        <li><a href="/contact/" class="text-light">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Availability - Fine Taste</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: #000 !important;
+        }
+        
+        .card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Fine Taste</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/menu/">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/customer/tables/">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about/">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact/">Contact</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Staff Portal
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="staffDropdown">
+                            <li><a class="dropdown-item" href="/staff/login/">Staff Login</a></li>
+                            <li><a class="dropdown-item" href="/manager/login/">Manager Login</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="text-center mb-4">Check Table Availability</h1>
+                
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        <form id="availability-form" method="post" action="{% url 'customer:table_availability' %}">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" 
+                                       min="{{ today|date:'Y-m-d' }}" 
+                                       value="{{ today|date:'Y-m-d' }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="time" class="form-label">Time</label>
+                                <select class="form-select" id="time" name="time" required>
+                                    {% for time_slot in time_slots %}
+                                    <option value="{{ time_slot|time:'H:i' }}">{{ time_slot|time:'g:i A' }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="party_size" class="form-label">Number of Guests</label>
+                                <select class="form-select" id="party_size" name="party_size" required>
+                                    {% for i in '12345678'|make_list %}
+                                    <option value="{{ i }}" {% if i == '2' %}selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                    <option value="9">9+</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="button" id="check-availability" class="btn btn-primary btn-lg">
+                                    Check Availability
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Results section, initially hidden -->
+                <div id="availability-results" class="mt-4" style="display: none;">
+                    <h2 class="text-center mb-3">Available Tables</h2>
+                    
+                    <div id="no-tables-message" class="alert alert-warning text-center" style="display: none;">
+                        <p class="mb-0">Sorry, no tables are available for the selected date, time, and party size.</p>
+                        <p class="mt-2">Please try a different date or time.</p>
+                    </div>
+                    
+                    <div id="tables-container" class="row"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Fine Taste</h5>
+                    <p>123 Gourmet Street<br>Coventry, CV1 1AB</p>
+                    <p>Phone: 024 7654 3210<br>Email: info@finetaste.com</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Opening Hours</h5>
+                    <p>Monday - Friday: 11:00 - 22:00<br>
+                       Saturday: 10:00 - 23:00<br>
+                       Sunday: 10:00 - 21:00</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/customer/tables/" class="text-light">Reservations</a></li>
+                        <li><a href="/customer/menu/" class="text-light">Menu</a></li>
+                        <li><a href="/events/" class="text-light">Private Events</a></li>
+                        <li><a href="/gift-cards/" class="text-light">Gift Cards</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkAvailabilityBtn = document.getElementById('check-availability');
+            const availabilityForm = document.getElementById('availability-form');
+            const resultsSection = document.getElementById('availability-results');
+            const noTablesMessage = document.getElementById('no-tables-message');
+            const tablesContainer = document.getElementById('tables-container');
+            
+            checkAvailabilityBtn.addEventListener('click', function() {
+                // Show loading state
+                checkAvailabilityBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
+                checkAvailabilityBtn.disabled = true;
+                
+                // Get form data
+                const formData = new FormData(availabilityForm);
+                
+                // Send AJAX request
+                fetch('{% url "customer:table_availability" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Reset button state
+                    checkAvailabilityBtn.innerHTML = 'Check Availability';
+                    checkAvailabilityBtn.disabled = false;
+                    
+                    // Clear previous results
+                    tablesContainer.innerHTML = '';
+                    
+                    // Show results section
+                    resultsSection.style.display = 'block';
+                    
+                    if (data.error) {
+                        // Show error message
+                        noTablesMessage.style.display = 'block';
+                        noTablesMessage.innerHTML = `<p class="mb-0">Error: ${data.error}</p>`;
+                        return;
+                    }
+                    
+                    const availableTables = data.available_tables || [];
+                    
+                    if (availableTables.length === 0) {
+                        // No tables available
+                        noTablesMessage.style.display = 'block';
+                        tablesContainer.style.display = 'none';
+                    } else {
+                        // Show available tables
+                        noTablesMessage.style.display = 'none';
+                        tablesContainer.style.display = 'flex';
+                        
+                        // Sort tables by capacity (ascending)
+                        availableTables.sort((a, b) => a.capacity - b.capacity);
+                        
+                        // Create table cards
+                        availableTables.forEach(table => {
+                            const tableCard = document.createElement('div');
+                            tableCard.className = 'col-md-6 col-lg-4 mb-4';
+                            tableCard.innerHTML = `
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Table ${table.table_number}</h5>
+                                        <p class="card-text">Capacity: ${table.capacity} people</p>
+                                        ${table.location ? `<p class="card-text">Location: ${table.location}</p>` : ''}
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <a href="/customer/make-reservation/?table_id=${table.id}&date=${formData.get('date')}&time=${formData.get('time')}&party_size=${formData.get('party_size')}" 
+                                           class="btn btn-primary">Select This Table</a>
+                                    </div>
+                                </div>
+                            `;
+                            tablesContainer.appendChild(tableCard);
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Reset button state and show error
+                    checkAvailabilityBtn.innerHTML = 'Check Availability';
+                    checkAvailabilityBtn.disabled = false;
+                    
+                    console.error('Error:', error);
+                    noTablesMessage.style.display = 'block';
+                    noTablesMessage.innerHTML = `<p class="mb-0">Error checking availability. Please try again later.</p>`;
+                    resultsSection.style.display = 'block';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

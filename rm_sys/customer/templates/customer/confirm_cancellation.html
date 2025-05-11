@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Cancellation - Fine Taste</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: #000 !important;
+        }
+        
+        .card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Fine Taste</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/menu/">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/tables/">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about/">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact/">Contact</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Staff Portal
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="staffDropdown">
+                            <li><a class="dropdown-item" href="/staff/login/">Staff Login</a></li>
+                            <li><a class="dropdown-item" href="/manager/login/">Manager Login</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="text-center mb-4">
+                    <h1 class="mb-3">Confirm Cancellation</h1>
+                    <p class="lead">Please review your reservation details and confirm cancellation.</p>
+                </div>
+                
+                <div class="card shadow-lg">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="card-title mb-0">Reservation Details</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5>Confirmation Code</h5>
+                                <p class="fw-bold">{{ reservation.confirmation_code }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Status</h5>
+                                <p><span class="badge bg-success">{{ reservation.get_status_display }}</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5>Customer Name</h5>
+                                <p>{{ reservation.customer_name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Contact Information</h5>
+                                <p>{{ reservation.customer_email }}<br>{{ reservation.customer_phone }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5>Date & Time</h5>
+                                <p>{{ reservation.reservation_date|date:"l, F j, Y" }}<br>
+                                   {{ reservation.reservation_time|time:"g:i A" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Party Size</h5>
+                                <p>{{ reservation.party_size }} {% if reservation.party_size == 1 %}person{% else %}people{% endif %}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <h5>Table</h5>
+                                <p>Table {{ reservation.table.table_number }} (Capacity: {{ reservation.table.capacity }})</p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="alert alert-warning" role="alert">
+                            <h5 class="alert-heading">Warning</h5>
+                            <p>You are about to cancel this reservation. This action cannot be undone.</p>
+                            <p class="mb-0">If you would like to make a new reservation, you will need to go through the reservation process again.</p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-between">
+                                <a href="/customer/cancel-reservation/" class="btn btn-secondary">Back</a>
+                                <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Fine Taste</h5>
+                    <p>123 Gourmet Street<br>Coventry, CV1 1AB</p>
+                    <p>Phone: 024 7654 3210<br>Email: info@finetaste.com</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Opening Hours</h5>
+                    <p>Monday - Friday: 11:00 - 22:00<br>
+                       Saturday: 10:00 - 23:00<br>
+                       Sunday: 10:00 - 21:00</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/customer/tables/" class="text-light">Reservations</a></li>
+                        <li><a href="/customer/menu/" class="text-light">Menu</a></li>
+                        <li><a href="/customer/cancel-reservation/" class="text-light">Cancel Reservation</a></li>
+                        <li><a href="/contact/" class="text-light">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

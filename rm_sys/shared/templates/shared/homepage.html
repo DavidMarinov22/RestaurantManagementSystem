@@ -307,36 +307,36 @@
             color: #000;
         }
         
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .nav-links {
-                flex-direction: column;
-                gap: 10px;
-                align-items: center;
-            }
-            
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .staff-login {
-                margin: 15px 0;
-            }
-            
-            .login-dropdown {
-                position: static;
-                display: none;
-                width: 100%;
-            }
-            
-            .staff-login:hover .login-dropdown {
-                display: block;
-            }
+        /* Guest Actions section */
+        .guest-actions {
+            padding: 40px 0;
+            background-color: #1a1a1a;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .btn-outline {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        
+        .btn-outline:hover {
+            background-color: #fff;
+            color: #000;
         }
         
         /* Mobile responsive */
@@ -356,15 +356,6 @@
                 font-size: 2.5rem;
             }
             
-            .menu-item {
-                flex-direction: column;
-            }
-            
-            .menu-image {
-                min-height: 200px;
-                width: 100%;
-            }
-            
             .staff-login {
                 margin: 15px 0;
             }
@@ -378,6 +369,11 @@
             .staff-login:hover .login-dropdown {
                 display: block;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -385,18 +381,18 @@
     <!-- Header with navigation -->
     <header>
         <div class="header-container">
-            <a href="#" class="logo">Fine Taste</a>
+            <a href="/" class="logo">Fine Taste</a>
             <ul class="nav-links">
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Menu</a></li>
-                <li><a href="#">Reservations</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/customer/menu/">Menu</a></li>
+                <li><a href="/customer/tables/">Reservations</a></li>
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Contact</a></li>
                 <div class="staff-login">
                     <button class="login-btn">Staff Portal</button>
                     <div class="login-dropdown">
-                        <a href="manager-login.html">Manager Login</a>
-                        <a href="staff-login.html">Staff Login</a>
+                        <a href="/manager/login/">Manager Login</a>
+                        <a href="/staff/login/">Staff Login</a>
                     </div>
                 </div>
             </ul>
@@ -408,7 +404,18 @@
         <div class="hero-content">
             <h1>Welcome to Fine Taste</h1>
             <p>Experience culinary excellence with our award-winning menu, featuring options for all dietary preferences.</p>
-            <a href="#" class="btn">Make a Reservation</a>
+            <a href="/customer/tables/" class="btn">Make a Reservation</a>
+        </div>
+    </section>
+    
+    <!-- Guest Actions section -->
+    <section class="guest-actions">
+        <div class="container">
+            <h2 class="section-title">Reservation Management</h2>
+            <div class="action-buttons">
+                <a href="/customer/tables/" class="btn">Book a Table</a>
+                <a href="/customer/cancel-reservation/" class="btn-outline">Cancel a Reservation</a>
+            </div>
         </div>
     </section>
 
@@ -423,7 +430,7 @@
                     <div class="feature-content">
                         <h3>Make A Reservation</h3>
                         <p>Our online reservation system makes arranging the perfect dinner quick, simple and easy.</p>
-                        <a href="#" class="btn">Book a Table</a>
+                        <a href="/customer/tables/" class="btn">Book a Table</a>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -440,7 +447,7 @@
                     <div class="feature-content">
                         <h3>Browse Our Menu</h3>
                         <p>Our award-winning menu options, with options suitable for vegans and vegetarians.</p>
-                        <a href="#" class="btn">View Menu</a>
+                        <a href="/customer/menu/" class="btn">View Menu</a>
                     </div>
                 </div>
             </div>
@@ -493,8 +500,9 @@
                 </div>
                 <div class="footer-section">
                     <h3>Quick Links</h3>
-                    <a href="#">Reservations</a>
-                    <a href="#">Menu</a>
+                    <a href="/customer/tables/">Reservations</a>
+                    <a href="/customer/cancel-reservation/">Cancel Reservation</a>
+                    <a href="/customer/menu/">Menu</a>
                     <a href="#">Private Events</a>
                     <a href="#">Gift Cards</a>
                 </div>
