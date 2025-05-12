@@ -24,18 +24,6 @@ def orderPage(request):
 def schedulePage(request):
     return render(request, "schedules.html")
 
-#Accounts
-@allowed_users(allowed_roles=['manager'])
-def accountPage(request):
-    users = User.objects.select_related('userprofile').all()
-    fields_to_display = ['Id','First_name', 'Last_name', 'Username', 'Email', 'Status']
-    groups = Group.objects.all() 
-    context = {
-        'users': users,
-        'fields': fields_to_display,
-        'all_groups': groups
-    }
-    return render(request, "accounts.html", context)
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
 def userPage(request):
     return render(request, "user.html")
@@ -44,31 +32,64 @@ class UserCreateView(CreateView):
     model = User
     form_class = UserCreationForm
     template_name = 'account_form.html'
-    success_url = reverse_lazy('accounts')
+    success_url = reverse_lazy('staff:accounts')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_groups'] = Group.objects.all()
+        return context
 
     def form_valid(self, form):
         response = super().form_valid(form)
         # Create profile with additional data
-        UserProfile.objects.create(
-            user=self.object,
-            phone=self.request.POST.get('phone'),
-            role=self.request.POST.get('role')
-        )
+        profile = self.object.userprofile
+        profile.phone = self.request.POST.get('phone', '')
+        profile.address = self.request.POST.get('address', '')
+        profile.nationalInsurance = self.request.POST.get('national_insurance', '')
+        profile.workingHours = float(self.request.POST.get('workHours', 0) or 0)
+        profile.annualLeave = float(self.request.POST.get('annualLeave', 0) or 0)
+        profile.wage = float(self.request.POST.get('wage', 0) or 0)
+        profile.save()
+        
+        # Handle group assignments
+        group_ids = self.request.POST.getlist('groups')
+        if group_ids:
+            self.object.groups.set(group_ids)
+            
         return response
+
 
 class UserUpdateView(UpdateView):
     model = User
     form_class = UserChangeForm
     template_name = 'account_form.html'
-    success_url = reverse_lazy('accounts')
+    success_url = reverse_lazy('staff:accounts')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_groups'] = Group.objects.all()
+        # Add profile form data
+        if hasattr(self.object, 'userprofile'):
+            context['profile_form'] = self.object.userprofile
+        return context
 
     def form_valid(self, form):
         response = super().form_valid(form)
         # Save profile data
         profile = self.object.userprofile
-        profile.phone = self.request.POST.get('phone')
-        profile.role = self.request.POST.get('role')
+        profile.phone = self.request.POST.get('phone', '')
+        profile.address = self.request.POST.get('address', '')
+        profile.nationalInsurance = self.request.POST.get('national_insurance', '')
+        profile.workingHours = float(self.request.POST.get('workHours', 0) or 0)
+        profile.annualLeave = float(self.request.POST.get('annualLeave', 0) or 0)
+        profile.wage = float(self.request.POST.get('wage', 0) or 0)
         profile.save()
+        
+        # Handle group assignments
+        group_ids = self.request.POST.getlist('groups')
+        if group_ids:
+            self.object.groups.set(group_ids)
+            
         return response
 
 class UserDeleteView(DeleteView):
@@ -98,8 +119,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.userprofile.save()
+    try:
+        instance.userprofile.save()
+    except User.userprofile.RelatedObjectDoesNotExist:
+        # Create profile if it doesn't exist
+        UserProfile.objects.create(user=instance)
 
+#Accounts
 @allowed_users(allowed_roles=['manager'])
 def accountPage(request):
     users = User.objects.select_related('userprofile').all()
@@ -215,15 +241,37 @@ def create_user_ajax(request):
                 is_active=request.POST.get('is_active') == 'on'
             )
             
-            # Create profile
-            profile = user.userprofile  
+            # Get the user profile (created by signal)
+            profile = user.userprofile
+            
+            # Update profile fields with form data
             profile.phone = request.POST.get('phone_number', '')
             profile.address = request.POST.get('address', '')
             profile.nationalInsurance = request.POST.get('national_insurance', '')
-            profile.workingHours = float(request.POST.get('workHours', 0))
-            profile.annualLeave = float(request.POST.get('annualLeave', 0))
-            profile.wage = float(request.POST.get('wage', 0.0))
+            
+            # Handle numeric fields with proper error checking
+            try:
+                profile.workingHours = float(request.POST.get('workHours', 0) or 0)
+            except (ValueError, TypeError):
+                profile.workingHours = 0
+                
+            try:
+                profile.annualLeave = float(request.POST.get('annualLeave', 0) or 0)
+            except (ValueError, TypeError):
+                profile.annualLeave = 0
+                
+            try:
+                profile.wage = float(request.POST.get('wage', 0) or 0)
+            except (ValueError, TypeError):
+                profile.wage = 0
+            
             profile.save()
+            
+            # Set user groups if provided
+            group_ids = request.POST.getlist('groups[]')
+            if group_ids:
+                user.groups.set(group_ids)
+            
             return JsonResponse({
                 'success': True,
                 'user': {
@@ -309,4 +357,3 @@ def delete_user_ajax(request, pk):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-

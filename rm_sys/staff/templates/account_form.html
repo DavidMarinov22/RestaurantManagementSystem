@@ -2,11 +2,176 @@
 
 {% block content %}
 <div class="container">
-    <h2>{% if object %}Edit{% else %}Create{% endif %} User</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save</button>
-    </form>
+  <h2>{% if object %}Edit{% else %}Create{% endif %} User</h2>
+  
+  <form method="post" class="user-form">
+    {% csrf_token %}
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">User Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="id_username" class="form-label">Username*</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="text-danger">{{ form.username.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
+          </div>
+          
+          {% if not object %}
+          <div class="col-md-6 mb-3">
+            <label for="id_password1" class="form-label">Password*</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+              <div class="text-danger">{{ form.password1.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_password2" class="form-label">Confirm Password*</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+              <div class="text-danger">{{ form.password2.errors }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_first_name" class="form-label">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <div class="text-danger">{{ form.first_name.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_last_name" class="form-label">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <div class="text-danger">{{ form.last_name.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_email" class="form-label">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger">{{ form.email.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_is_active" class="form-check-label">
+              {{ form.is_active }}
+              Employed
+            </label>
+            {% if form.is_active.errors %}
+              <div class="text-danger">{{ form.is_active.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Profile Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="id_phone" class="form-label">Phone Number</label>
+            <input type="text" name="phone" id="id_phone" class="form-control" 
+                   value="{% if profile_form %}{{ profile_form.phone.value }}{% endif %}">
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_address" class="form-label">Address</label>
+            <input type="text" name="address" id="id_address" class="form-control"
+                   value="{% if profile_form %}{{ profile_form.address.value }}{% endif %}">
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_national_insurance" class="form-label">National Insurance</label>
+            <input type="text" name="national_insurance" id="id_national_insurance" class="form-control"
+                   value="{% if profile_form %}{{ profile_form.nationalInsurance.value }}{% endif %}">
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <label for="id_groups" class="form-label">Roles</label>
+            <select name="groups" id="id_groups" class="form-select" multiple>
+              {% for group in all_groups %}
+                <option value="{{ group.id }}" 
+                  {% if object and group in object.groups.all %}selected{% endif %}>
+                  {{ group.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="col-md-4 mb-3">
+            <label for="id_working_hours" class="form-label">Working Hours</label>
+            <input type="number" name="workHours" id="id_working_hours" class="form-control" step="0.01"
+                   value="{% if profile_form %}{{ profile_form.workingHours.value }}{% else %}0{% endif %}">
+          </div>
+          
+          <div class="col-md-4 mb-3">
+            <label for="id_annual_leave" class="form-label">Annual Leave</label>
+            <input type="number" name="annualLeave" id="id_annual_leave" class="form-control" step="0.01"
+                   value="{% if profile_form %}{{ profile_form.annualLeave.value }}{% else %}0{% endif %}">
+          </div>
+          
+          <div class="col-md-4 mb-3">
+            <label for="id_wage" class="form-label">Wage</label>
+            <input type="number" name="wage" id="id_wage" class="form-control" step="0.01"
+                   value="{% if profile_form %}{{ profile_form.wage.value }}{% else %}0{% endif %}">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{% url 'staff:accounts' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
 </div>
+
+<style>
+  /* Dark theme styling */
+  .card {
+    background-color: #1a1a1a;
+    border-color: #333;
+  }
+  
+  .card-header {
+    background-color: #222;
+    border-bottom-color: #333;
+  }
+  
+  .form-control, .form-select {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    background-color: #333;
+    border-color: #007bff;
+    color: #fff;
+  }
+  
+  .text-muted {
+    color: #aaa !important;
+  }
+  
+  .form-select option {
+    background-color: #2a2a2a;
+    color: #fff;
+  }
+</style>
 {% endblock %}
