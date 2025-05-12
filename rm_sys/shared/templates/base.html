@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table Availability - Fine Taste</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #121212;
-            color: #fff;
+   <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        .navbar {
-            background-color: #000 !important;
+        body {
+            line-height: 1.6;
+            color: #fff!important;
+            background-color: #121212!important;
         }
-        
         .card {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
+            background-color: #1a1a1a!important;
+            border: 1px solid #333!important;
         }
         
         .btn-primary {
@@ -30,70 +33,227 @@
             background-color: #0069d9;
             border-color: #0062cc;
         }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+        .card-header.bg-success {
+            background-color: #28a745 !important;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: #000;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #aaa;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #000;
+            color: white;
+            padding: 60px 0 20px;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #aaa;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .footer-section a:hover {
+            color: #fff;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #777;
+        }
+        
+        
+        .login-btn {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: white;
+            color: #000;
+        }
+        
+
+        /* Guest Actions section */
+        .guest-actions {
+            padding: 40px 0;
+            background-color: #1a1a1a;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .btn-outline {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        
+        .btn-outline:hover {
+            background-color: #fff;
+            color: #000;
+
+        }
+        
+        .hello-msg{
+            font-size: 18px;
+            color:#fff;
+            margin-right: 20px;
+        }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Fine Taste</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/customer/menu/">Menu</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/customer/tables/">Reservations</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about/">About Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/contact/">Contact</a>
-                    </li>
-                </ul>
-            </div>
+    <!-- Header with navigation -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">Fine Taste</a>
+            <ul class="nav-links">
+                {% if user.is_authenticated %}
+                
+                    {% if user.groups.all.0.name != 'kitchen' %}
+                    <li><a href="{% url 'staff:inventory' %}">Inventory</a></li>
+                    {% endif %}
+                    {% if user.groups.all.0.name != 'inventory' %}
+                    <li><a href="{% url 'staff:orders' %}">Orders</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'staff:schedules' %}">Schedules</a></li>
+                    {% if user.groups.all.0.name == 'manager' %}
+                    <li><a href="{% url 'staff:accounts' %}">Accounts</a></li>
+                    {% endif %}
+                
+                {% else %}
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/customer/menu/">Menu</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                {% endif %}
+                <div class="staff-login">
+                     {% if user.is_authenticated %}
+                     <span class="hello-msg"> Hello, {{request.user}}</span>
+                    <a class="hello-msg" href="{% url 'shared:logout' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
+                    {% endif %}
+                </div>
+            </ul>
         </div>
-    </nav>
+    </header>
 
   {% block content %}{% endblock content %}
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
+     <!-- Footer -->
+    <footer>
         <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>Fine Taste</h5>
-                    <p>123 Gourmet Street<br>Coventry, CV1 1AB</p>
-                    <p>Phone: 024 7654 3210<br>Email: info@finetaste.com</p>
+            <div class="footer-container">
+                <div class="footer-section">
+                    <h3>Find Us</h3>
+                    <p>123 Gourmet Street</p>
+                    <p>Coventry, CV1 1AB</p>
+                    <p>Phone: 024 7654 3210</p>
+                    <p>Email: info@finetaste.com</p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Opening Hours</h5>
-                    <p>Monday - Friday: 11:00 - 22:00<br>
-                       Saturday: 10:00 - 23:00<br>
-                       Sunday: 10:00 - 21:00</p>
+                <div class="footer-section">
+                    <h3>Opening Hours</h3>
+                    <p>Monday - Friday: 11:00 - 22:00</p>
+                    <p>Saturday: 10:00 - 23:00</p>
+                    <p>Sunday: 10:00 - 21:00</p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="/customer/tables/" class="text-light">Reservations</a></li>
-                        <li><a href="/customer/menu/" class="text-light">Menu</a></li>
-                        <li><a href="/events/" class="text-light">Private Events</a></li>
-                        <li><a href="/gift-cards/" class="text-light">Gift Cards</a></li>
-                    </ul>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="{% url 'customer:table_availability' %}">Reservations</a>
+                    <a href="{% url 'customer:cancel_reservation' %}">Cancel Reservation</a>
+                    <a href="/customer/menu/">Menu</a>
+                    <a href="#">Private Events</a>
+                    <a href="#">Gift Cards</a>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col text-center">
-                    <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
-                </div>
+            <div class="copyright">
+                <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
             </div>
         </div>
     </footer>

@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,64 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Name | Fine Dining Experience</title>
     <style>
-        /* Base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            line-height: 1.6;
-            color: #fff;
-            background-color: #121212;
-        }
-        
-        /* Header styles */
-        header {
-            background-color: #000;
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-        
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #fff;
-            text-decoration: none;
-        }
-        
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-        
-        .nav-links a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 1.1rem;
-            transition: color 0.3s;
-        }
-        
-        .nav-links a:hover {
-            color: #aaa;
-        }
-        
         /* Hero section */
         .hero {
             position: relative;
@@ -217,68 +162,7 @@
             font-weight: bold;
             color: #fff;
         }
-        
-        /* Footer */
-        footer {
-            background-color: #000;
-            color: white;
-            padding: 60px 0 20px;
-        }
-        
-        .footer-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        
-        .footer-section h3 {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-        
-        .footer-section p, .footer-section a {
-            color: #aaa;
-            margin-bottom: 10px;
-            display: block;
-            text-decoration: none;
-        }
-        
-        .footer-section a:hover {
-            color: #fff;
-        }
-        
-        .copyright {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-            color: #777;
-        }
-        
-        /* Staff login dropdown */
-        .staff-login {
-            position: relative;
-            margin-left: 20px;
-        }
-        
-        
-        
-        .login-btn {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-            padding: 8px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .login-btn:hover {
-            background-color: white;
-            color: #000;
-        }
+
         
 
         /* Guest Actions section */
@@ -355,45 +239,13 @@
     </style>
 </head>
 <body>
-    <!-- Header with navigation -->
-    <header>
-        <div class="header-container">
-            <a href="/" class="logo">Fine Taste</a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/customer/menu/">Menu</a></li>
-                <li><a href="/customer/tables/">Reservations</a></li>
-                <li><a href="#">About Us</a></li>
-                <li><a href="#">Contact</a></li>
-                <div class="staff-login">
-                     {% if user.is_authenticated %}
-                     <span class="hello-msg"> Hello, {{request.user}}</span>
-                    <a class="hello-msg" href="{% url 'shared:logout' %}">Logout</a>
-                    {% else %}
-                    <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
-                    {% endif %}
-                </div>
-            </ul>
-        </div>
-    </header>
 
     <!-- Hero section with welcome message -->
     <section class="hero">
         <div class="hero-content">
             <h1>Welcome to Fine Taste</h1>
             <p>Experience culinary excellence with our award-winning menu, featuring options for all dietary preferences.</p>
-            <a href="/customer/tables/" class="btn">Make a Reservation</a>
-        </div>
-    </section>
-    
-    <!-- Guest Actions section -->
-    <section class="guest-actions">
-        <div class="container">
-            <h2 class="section-title">Reservation Management</h2>
-            <div class="action-buttons">
-                <a href="/customer/tables/" class="btn">Book a Table</a>
-                <a href="/customer/cancel-reservation/" class="btn-outline">Cancel a Reservation</a>
-            </div>
+            <a href="{% url 'customer:table_availability' %}" class="btn">Make a Reservation</a>
         </div>
     </section>
 
@@ -408,7 +260,7 @@
                     <div class="feature-content">
                         <h3>Make A Reservation</h3>
                         <p>Our online reservation system makes arranging the perfect dinner quick, simple and easy.</p>
-                        <a href="/customer/tables/" class="btn">Book a Table</a>
+                        <a href="{% url 'customer:table_availability' %}" class="btn">Book a Table</a>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -459,38 +311,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-container">
-                <div class="footer-section">
-                    <h3>Find Us</h3>
-                    <p>123 Gourmet Street</p>
-                    <p>Coventry, CV1 1AB</p>
-                    <p>Phone: 024 7654 3210</p>
-                    <p>Email: info@finetaste.com</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Opening Hours</h3>
-                    <p>Monday - Friday: 11:00 - 22:00</p>
-                    <p>Saturday: 10:00 - 23:00</p>
-                    <p>Sunday: 10:00 - 21:00</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <a href="/customer/tables/">Reservations</a>
-                    <a href="/customer/cancel-reservation/">Cancel Reservation</a>
-                    <a href="/customer/menu/">Menu</a>
-                    <a href="#">Private Events</a>
-                    <a href="#">Gift Cards</a>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2025 Fine Taste Restaurant. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
     <script>
         // Basic JavaScript for dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -500,3 +320,4 @@
     </script>
 </body>
 </html>
+{% endblock content %}
