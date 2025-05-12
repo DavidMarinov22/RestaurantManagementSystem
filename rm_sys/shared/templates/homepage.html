@@ -314,6 +314,12 @@
 
         }
         
+        .hello-msg{
+            font-size: 18px;
+            color:#fff;
+            margin-right: 20px;
+        }
+        
         /* Mobile responsive */
         @media (max-width: 768px) {
             .header-container {
@@ -361,10 +367,8 @@
                 <li><a href="#">Contact</a></li>
                 <div class="staff-login">
                      {% if user.is_authenticated %}
-                    <form action="{% url 'shared:logout' %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="login-btn">Logout</button>
-                    </form>
+                     <span class="hello-msg"> Hello, {{request.user}}</span>
+                    <a class="hello-msg" href="{% url 'shared:logout' %}">Logout</a>
                     {% else %}
                     <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
                     {% endif %}
