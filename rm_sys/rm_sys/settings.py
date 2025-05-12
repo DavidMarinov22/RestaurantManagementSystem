@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'manager',
     'customer',
-    'staff',
+    'staff.apps.StaffConfig',
     'shared',
 ]
 
@@ -106,6 +106,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+AUTH_USER_MODEL = 'auth.User'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = "shared:home"
 LOGOUT_REDIRECT_URL = "shared:login"
