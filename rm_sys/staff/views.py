@@ -219,16 +219,14 @@ def create_user_ajax(request):
             )
             
             # Create profile
-            UserProfile.objects.create(
-                user=user,
-                phone=request.POST.get('phone_number', ''),
-                address=request.POST.get('address', ''),
-                nationalInsurance=request.POST.get('national_insurance', ''),
-                workingHours=request.POST.get('workHours', 0),
-                annualLeave=request.POST.get('annualLeave', 0),
-                wage=request.POST.get('wage', 0)
-            )
-            
+            profile = user.userprofile  
+            profile.phone = request.POST.get('phone_number', '')
+            profile.address = request.POST.get('address', '')
+            profile.nationalInsurance = request.POST.get('national_insurance', '')
+            profile.workingHours = float(request.POST.get('workHours', 0))
+            profile.annualLeave = float(request.POST.get('annualLeave', 0))
+            profile.wage = float(request.POST.get('wage', 0.0))
+            profile.save()
             return JsonResponse({
                 'success': True,
                 'user': {
@@ -250,49 +248,47 @@ def update_user_ajax(request, pk):
     if request.method == 'POST':
         try:
             user = User.objects.get(pk=pk)
-            print("I AM HERE")
-            # Update user fields
+            
+            # Update user fields with defaults if not provided
             user.username = request.POST.get('username', user.username)
             user.email = request.POST.get('email', user.email)
             user.first_name = request.POST.get('first_name', user.first_name)
             user.last_name = request.POST.get('last_name', user.last_name)
-            user.is_active = request.POST.get('is_active') == 'on'
+            user.is_active = request.POST.get('is_active', 'off') == 'on'
             user.save()
             
-            # Get or create profile with defaults
-            profile = UserProfile.objects.get(user=user)
-            # if profile is None:
+            # Get or create profile
+            profile, created = UserProfile.objects.get_or_create(user=user)
             
-            # else:
-
-            profile = UserProfile.objects.get_or_create(
-                user=user,
-                defaults={
-                    'phone': '',
-                    'address': '',
-                    'nationalInsurance': '',
-                    'workingHours': 0,
-                    'annualLeave': 0,
-                    'wage': 0.0
-                }
-            )
-            profile.save()
-            # Update profile fields with proper type conversion
-            profile.phone = request.POST.get('phone_number', profile.phone)
-            profile.address = request.POST.get('address', profile.address)
-            profile.nationalInsurance = request.POST.get('national_insurance', profile.nationalInsurance)
-            profile.workingHours = int(request.POST.get('workHours', profile.workingHours or 0))
-            profile.annualLeave = int(request.POST.get('annualLeave', profile.annualLeave or 0))
-            profile.wage = float(request.POST.get('wage', profile.wage or 0.0))
+            # Update profile fields
+            profile_fields = {
+                'phone': request.POST.get('phone_number', profile.phone),
+                'address': request.POST.get('address', profile.address),
+                'nationalInsurance': request.POST.get('national_insurance', profile.nationalInsurance),
+                'workingHours': int(float(request.POST.get('workHours', profile.workingHours or 0))),
+                'annualLeave': int(float(request.POST.get('annualLeave', profile.annualLeave or 0))),
+                'wage': float(request.POST.get('wage', profile.wage or 0.0))
+            }
+            
+            for field, value in profile_fields.items():
+                setattr(profile, field, value)
             profile.save()
             
             # Update groups
-            group_ids = request.POST.getlist('groups[]')
-            user.groups.set(group_ids)
+            group_ids = request.POST.getlist('groups[]', [])
+            if group_ids:
+                user.groups.set(group_ids)
             
             return JsonResponse({
                 'success': True,
-                'user': model_to_dict(user, fields=['id', 'username', 'first_name', 'last_name', 'email', 'is_active'])
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'is_active': user.is_active
+                }
             })
         except Exception as e:
             return JsonResponse({
