@@ -3,35 +3,45 @@
 {% block content %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>User Accounts</title>
     <style>
-        table { 
+        table {
             border-collapse: collapse;
             width: 100%;
-            color:#fff;
+            color: #fff;
         }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #f2f2f2; }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
+
 <body>
     <h1>User Accounts</h1>
-    
+
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
         Add New Staff
     </button>
 
     <table class="table" id="usersTable">
-    <thead>
-        <tr>
-            {% for field in fields %}
+        <thead>
+            <tr>
+                {% for field in fields %}
                 <th>{{ field }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in users %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
             <tr id="userRow-{{ user.id }}">
                 <td>{{ user.id }}</td>
                 <td>{{ user.first_name }}</td>
@@ -40,13 +50,13 @@
                 <td>{{ user.email }}</td>
                 <td class="{% if user.is_active %}text-success{% else %}text-danger{% endif %}">
                     {% if user.is_active %}
-                        Employed
+                    Employed
                     {% else %}
-                        Unemployed
+                    Unemployed
                     {% endif %}
                 </td>
                 <td>
-                   <button type="button" class="btn btn-sm btn-warning edit-user" data-user-id="{{ user.id }}">
+                    <button type="button" class="btn btn-sm btn-warning edit-user" data-user-id="{{ user.id }}">
                         Edit
                     </button>
                     <button type="button" class="btn btn-sm btn-danger delete-user" data-user-id="{{ user.id }}">
@@ -54,8 +64,8 @@
                     </button>
                 </td>
             </tr>
-        {% endfor %}
-    </tbody>
+            {% endfor %}
+        </tbody>
     </table>
 
     <!-- Add User Modal -->
@@ -158,26 +168,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 
     <script>
-    $(document).ready(function() {
-        // Initialize toastr
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right"
-        };
+        $(document).ready(function () {
+            // Initialize toastr
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right"
+            };
 
-        // Add User Form Submission
-        $('#addUserForm').on('submit', function(e) {
-            e.preventDefault();
-            $.ajax({
-                url: '{% url "staff:user_create" %}',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(response) {
-                    if(response.success) {
-                        // Add new row to table
-                        const user = response.user;
-                        const newRow = `
+            // Add User Form Submission
+            $('#addUserForm').on('submit', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '{% url "staff:user_create" %}',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            // Add new row to table
+                            const user = response.user;
+                            const newRow = `
                             <tr id="userRow-${user.id}">
                                 <td>${user.id}</td>
                                 <td>${user.first_name || ''}</td>
@@ -197,61 +207,76 @@
                                 </td>
                             </tr>
                         `;
-                        $('#usersTable tbody').append(newRow);
-                        $('#addUserModal').modal('hide');
-                        $('#addUserForm')[0].reset();
-                        toastr.success('User added successfully');
-                    } else {
-                        toastr.error(response.error || 'Error adding user');
+                            $('#usersTable tbody').append(newRow);
+                            $('#addUserModal').modal('hide');
+                            $('#addUserForm')[0].reset();
+                            toastr.success('User added successfully');
+                        } else {
+                            toastr.error(response.error || 'Error adding user');
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Error adding user');
                     }
-                },
-                error: function(xhr) {
-                    toastr.error('Error adding user');
-                }
+                });
             });
-        });
 
 
-// Edit User Click button
-$(document).on('click', '.edit-user', function() {
-    const userId = $(this).data('user-id');
-    $('#editUserId').val(userId);
-    
-    // Load user data into modal
-    $.ajax({
-        url: "{% url 'staff:user_update_form' 0 %}".replace('0', userId),
-        type: 'GET',
-        success: function(response) {
-            $('#editUserModalBody').html(response.form_html);  // Note the .form_html access
-            $('#editUserModal').modal('show');
-            
-            // Initialize Select2 for groups
-            $('.groups-select').select2({
-                placeholder: "Select groups",
-                allowClear: true,
-                width: '100%'
+            // Edit User Click button
+            $(document).on('click', '.edit-user', function () {
+                const userId = $(this).data('user-id');
+                $('#editUserId').val(userId);
+
+                // Load user data into modal
+                $.ajax({
+                    url: "{% url 'staff:user_update_form' 0 %}".replace('0', userId),
+                    type: 'GET',
+                    success: function (response) {
+                        $('#editUserModalBody').html(response.form_html);  // Note the .form_html access
+                        $('#editUserModal').modal('show');
+
+                        // Initialize Select2 for groups
+                        $('.groups-select').select2({
+                            placeholder: "Select groups",
+                            allowClear: true,
+                            width: '100%'
+                        });
+                    },
+                    error: function () {
+                        toastr.error('Error loading user data');
+                    }
+                });
             });
-        },
-        error: function() {
-            toastr.error('Error loading user data');
-        }
-    });
-});
 
-        // Edit User Form Submission
-        $('#editUserForm').on('submit', function(e) {
-            e.preventDefault();
-            const userId = $('#editUserId').val();
-            
-            $.ajax({
-                url: "{% url 'staff:user_update' 0 %}".replace('0', userId),
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(response) {
-                    if(response.success) {
-                        // Update the row in the table
-                        const user = response.user;
-                        $(`#userRow-${user.id}`).html(`
+            // Edit User Form Submission
+            $('#editUserForm').on('submit', function (e) {
+                e.preventDefault();
+                const userId = $('#editUserId').val();
+                const formData = $(this).serializeArray();
+
+                // Convert form data to object
+                let data = {};
+                $.each(formData, function (index, field) {
+                    data[field.name] = field.value;
+                });
+
+                // Handle groups separately
+                data['groups'] = $('.groups-select').val();
+                let groups = $('.groups-select').select2('data').map(item => item.id);
+                formData.push({name: 'groups[]', value: groups});
+
+                $.ajax({
+                    url: "{% url 'staff:user_update' 0 %}".replace('0', userId),
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Update the row in the table
+                            const user = response.user;
+                            $(`#userRow-${user.id}`).html(`
                             <td>${user.id}</td>
                             <td>${user.first_name || ''}</td>
                             <td>${user.last_name || ''}</td>
@@ -269,72 +294,76 @@ $(document).on('click', '.edit-user', function() {
                                 </button>
                             </td>
                         `);
-                        $('#editUserModal').modal('hide');
-                        toastr.success('User updated successfully');
-                    } else {
-                        toastr.error(response.error || 'Error updating user');
+                            $('#editUserModal').modal('hide');
+                            toastr.success('User updated successfully');
+                        } else {
+                            toastr.error(response.error || 'Error updating user');
+                        }
+                    },
+
+                    error: function (xhr) {
+                        toastr.error('Error updating user: ' + xhr.responseText);
                     }
-                },
-                error: function(xhr) {
-                    toastr.error('Error updating user');
-                }
+                });
             });
-        });
 
-        // Delete User Button Click
-        $(document).on('click', '.delete-user', function() {
-            const userId = $(this).data('user-id');
-            $('#deleteUserModal').data('user-id', userId).modal('show');
-        });
 
-        // Confirm Delete
-        $('#confirmDelete').on('click', function() {
-            const userId = $('#deleteUserModal').data('user-id');
-            
-            $.ajax({
-                url: `/staff/user/${userId}/delete/`,
-                type: 'POST',
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if(response.success) {
-                        $(`#userRow-${userId}`).remove();
-                        $('#deleteUserModal').modal('hide');
-                        toastr.success('User deleted successfully');
-                    } else {
-                        toastr.error(response.error || 'Error deleting user');
+
+            // Delete User Button Click
+            $(document).on('click', '.delete-user', function () {
+                const userId = $(this).data('user-id');
+                $('#deleteUserModal').data('user-id', userId).modal('show');
+            });
+
+            // Confirm Delete
+            $('#confirmDelete').on('click', function () {
+                const userId = $('#deleteUserModal').data('user-id');
+
+                $.ajax({
+                    url: "{% url 'staff:user_delete' 0 %}".replace('0', userId),
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $(`#userRow-${userId}`).remove();
+                            $('#deleteUserModal').modal('hide');
+                            toastr.success('User deleted successfully');
+                        } else {
+                            toastr.error(response.error || 'Error deleting user');
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Error deleting user');
                     }
-                },
-                error: function() {
-                    toastr.error('Error deleting user');
-                }
+                });
             });
-        });
 
-        // Handle group changes
-        $(document).on('change', '.groups-select', function() {
-            const userId = $(this).data('user-id');
-            const groupIds = $(this).val();
-            
-            $.ajax({
-                url: '{% url "staff:update_user_groups" %}',
-                method: 'POST',
-                data: {
-                    'user_id': userId,
-                    'group_ids': groupIds,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    toastr.success('Groups updated successfully');
-                },
-                error: function(xhr) {
-                    toastr.error('Error updating groups');
-                }
+            // Handle group changes
+            $(document).on('change', '.groups-select', function () {
+                const userId = $(this).data('user-id');
+                const groupIds = $(this).val();
+
+                $.ajax({
+                    url: '{% url "staff:update_user_groups" %}',
+                    method: 'POST',
+                    data: {
+                        'user_id': userId,
+                        'group_ids': groupIds,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        toastr.success('Groups updated successfully');
+                    },
+                    error: function (xhr) {
+                        toastr.error('Error updating groups');
+                    }
+                });
             });
         });
-    });
     </script>
 </body>
+
 </html>
 {% endblock %}
