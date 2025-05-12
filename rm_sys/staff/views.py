@@ -24,18 +24,6 @@ def orderPage(request):
 def schedulePage(request):
     return render(request, "schedules.html")
 
-#Accounts
-@allowed_users(allowed_roles=['manager'])
-def accountPage(request):
-    users = User.objects.select_related('userprofile').all()
-    fields_to_display = ['Id','First_name', 'Last_name', 'Username', 'Email', 'Status']
-    groups = Group.objects.all() 
-    context = {
-        'users': users,
-        'fields': fields_to_display,
-        'all_groups': groups
-    }
-    return render(request, "accounts.html", context)
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
 def userPage(request):
     return render(request, "user.html")
@@ -131,21 +119,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-<<<<<<< HEAD
     try:
         instance.userprofile.save()
     except User.userprofile.RelatedObjectDoesNotExist:
         # Create profile if it doesn't exist
         UserProfile.objects.create(user=instance)
-def userPage(request):
-    return render(request, "user.html")
 
-
-
-=======
-    instance.userprofile.save()
->>>>>>> 02b109099066b07c441d151e4d3b64b05365648c
-
+#Accounts
 @allowed_users(allowed_roles=['manager'])
 def accountPage(request):
     users = User.objects.select_related('userprofile').all()
@@ -377,4 +357,3 @@ def delete_user_ajax(request, pk):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-
