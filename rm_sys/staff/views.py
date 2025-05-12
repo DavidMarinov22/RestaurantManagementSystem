@@ -250,7 +250,7 @@ def update_user_ajax(request, pk):
     if request.method == 'POST':
         try:
             user = User.objects.get(pk=pk)
-            
+            print("I AM HERE")
             # Update user fields
             user.username = request.POST.get('username', user.username)
             user.email = request.POST.get('email', user.email)
@@ -260,7 +260,12 @@ def update_user_ajax(request, pk):
             user.save()
             
             # Get or create profile with defaults
-            profile, created = UserProfile.objects.get_or_create(
+            profile = UserProfile.objects.get(user=user)
+            # if profile is None:
+            
+            # else:
+
+            profile = UserProfile.objects.get_or_create(
                 user=user,
                 defaults={
                     'phone': '',
@@ -271,7 +276,7 @@ def update_user_ajax(request, pk):
                     'wage': 0.0
                 }
             )
-            
+            profile.save()
             # Update profile fields with proper type conversion
             profile.phone = request.POST.get('phone_number', profile.phone)
             profile.address = request.POST.get('address', profile.address)
