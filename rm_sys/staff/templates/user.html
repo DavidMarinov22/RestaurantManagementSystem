@@ -1,4 +1,95 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Name | Fine Dining Experience</title>
+    <style>
+        /* Hero section */
+        .hero {
+            position: relative;
+            height: 80vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            max-width: 800px;
+            padding: 20px;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            background-color: #aaa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero section with welcome message -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Fine Taste {{request.user}}</h1>
+            <p>Experience culinary excellence with our award-winning menu, featuring options for all dietary preferences.</p>
+            {% if user.groups.all.0.name == 'inventory' %}
+                <a href="{% url 'staff:inventory' %}" class="btn">See The Inventory</a>
+                <a href="{% url 'staff:schedules' %}" class="btn">See Your Schedule</a>
+            {% endif %}
+            {% if user.groups.all.0.name == 'kitchen' %}
+                <a href="{% url 'staff:orders' %}" class="btn">See The Orders</a>
+                <a href="{% url 'staff:schedules' %}" class="btn">See Your Schedule</a>
+            {% endif %}
+            {% if user.groups.all.0.name == 'waiter' %}
+                <a href="{% url 'staff:orders' %}" class="btn">See The Orders</a>
+                <a href="{% url 'staff:schedules' %}" class="btn">See Your Schedule</a>
+            {% endif %}
+            {% if user.groups.all.0.name == 'manager' %}
+                <a href="{% url 'staff:inventory' %}" class="btn" style="margin-top: 2%;">See The Inventory</a>
+                <a href="{% url 'staff:orders' %}" class="btn" style="margin-top: 2%;">See The Orders</a>
+                <br>
+                <a href="{% url 'staff:schedules' %}" class="btn" style="margin-top: 2%;">See The Schedules</a>
+                <a href="{% url 'staff:accounts' %}" class="btn" style="margin-top: 2%;">See The Accounts</a>
+            {% endif %}
+        </div>
+    </section>
+</body>
+</html>
 {% endblock content %}

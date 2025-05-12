@@ -36,6 +36,9 @@ def accountPage(request):
         'all_groups': groups
     }
     return render(request, "accounts.html", context)
+@allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
+def userPage(request):
+    return render(request, "user.html")
 
 class UserCreateView(CreateView):
     model = User
@@ -96,12 +99,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
-
-def userPage(request):
-    return render(request, "user.html")
-
-
-
 
 @allowed_users(allowed_roles=['manager'])
 def accountPage(request):

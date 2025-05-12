@@ -198,33 +198,23 @@
     <!-- Header with navigation -->
     <header>
         <div class="header-container">
+            {% if user.is_authenticated %}
+            <a href="{% url 'staff:user-page' %}" class="logo">Fine Taste</a>
+            {% else %}
             <a href="/" class="logo">Fine Taste</a>
+            {% endif %}
             <ul class="nav-links">
-                {% if user.is_authenticated %}
-                
-                    {% if user.groups.all.0.name != 'kitchen' %}
-                    <li><a href="{% url 'staff:inventory' %}">Inventory</a></li>
-                    {% endif %}
-                    {% if user.groups.all.0.name != 'inventory' %}
-                    <li><a href="{% url 'staff:orders' %}">Orders</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'staff:schedules' %}">Schedules</a></li>
-                    {% if user.groups.all.0.name == 'manager' %}
-                    <li><a href="{% url 'staff:accounts' %}">Accounts</a></li>
-                    {% endif %}
-                
-                {% else %}
+                {% if user.is_authenticated == False %}
                     <li><a href="/">Home</a></li>
                     <li><a href="/customer/menu/">Menu</a></li>
                     <li><a href="#">About Us</a></li>
                     <li><a href="#">Contact</a></li>
                 {% endif %}
                 <div class="staff-login">
-                     {% if user.is_authenticated %}
-                     <span class="hello-msg"> Hello, {{request.user}}</span>
-                    <a class="hello-msg" href="{% url 'shared:logout' %}">Logout</a>
+                    {% if user.is_authenticated %}
+                        <a class="hello-msg" href="{% url 'shared:logout' %}">Logout</a>
                     {% else %}
-                    <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
+                        <a href="{% url 'shared:login' %}" class="login-btn" style="font-size: 0.8rem!important;">Staff Portal</a>
                     {% endif %}
                 </div>
             </ul>
