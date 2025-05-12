@@ -1,369 +1,501 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>User Accounts</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            color: #fff;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>User Accounts</h1>
-
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-        Add New Staff
+<div class="container-fluid mt-4">
+  <h1 class="mb-4">User Management</h1>
+  
+  <!-- Add User Button -->
+  <div class="mb-3">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+      <i class="fas fa-plus"></i> Add New User
     </button>
-
-    <table class="table" id="usersTable">
-        <thead>
+  </div>
+  
+  <!-- Users Table -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Users</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
             <tr>
-                {% for field in fields %}
-                <th>{{ field }}</th>
-                {% endfor %}
+              {% for field in fields %}
+              <th>{{ field }}</th>
+              {% endfor %}
+              <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
             {% for user in users %}
-            <tr id="userRow-{{ user.id }}">
-                <td>{{ user.id }}</td>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td class="{% if user.is_active %}text-success{% else %}text-danger{% endif %}">
-                    {% if user.is_active %}
-                    Employed
-                    {% else %}
-                    Unemployed
-                    {% endif %}
-                </td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-warning edit-user" data-user-id="{{ user.id }}">
-                        Edit
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger delete-user" data-user-id="{{ user.id }}">
-                        Delete
-                    </button>
-                </td>
+            <tr data-user-id="{{ user.id }}">
+              <td>{{ user.id }}</td>
+              <td>{{ user.first_name }}</td>
+              <td>{{ user.last_name }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>{% if user.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+              <td>
+                <button class="btn btn-sm btn-primary edit-user" data-user-id="{{ user.id }}">Edit</button>
+                <button class="btn btn-sm btn-danger delete-user" data-user-id="{{ user.id }}">Delete</button>
+              </td>
             </tr>
             {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Add User Modal -->
-    <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Staff</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="addUserForm">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="first_name">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="last_name">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" name="password2" required>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" name="is_active" id="is_active_new" checked>
-                            <label class="form-check-label" for="is_active_new">Employed</label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add User</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    <!-- Edit User Modal (Dynamic content will be loaded here) -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit User</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="editUserForm">
-                    {% csrf_token %}
-                    <input type="hidden" name="user_id" id="editUserId">
-                    <div class="modal-body" id="editUserModalBody">
-                        <!-- Content will be loaded via AJAX -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
-                    </div>
-                </form>
-            </div>
+  </div>
+  
+  <!-- Create User Modal -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-body">
+          <form id="userCreateForm" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">Username*</label>
+                  <input type="text" class="form-control" name="username" required>
+                  <small class="text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
                 </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this user?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-                </div>
+              </div>
             </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Password*</label>
+                  <input type="password" class="form-control" name="password1" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Confirm Password*</label>
+                  <input type="password" class="form-control" name="password2" required>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-5">
+                  <label class="control-label">Role:</label>
+                  <select class="form-select form-select-sm groups-select" 
+                          multiple 
+                          aria-label="Select groups"
+                          name="groups[]">
+                    {% for group in all_groups %}
+                      <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-7">
+                  <label class="control-label">National Insurance:</label>
+                  <input type="text" class="form-control" name="national_insurance">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="control-label">First name:</label>
+                  <input type="text" class="form-control" name="first_name">
+                </div>
+                <div class="col-md-6">
+                  <label class="control-label">Last Name:</label>
+                  <input type="text" class="form-control" name="last_name">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-4">
+                  <label class="control-label">Phone Number:</label>
+                  <input type="text" class="form-control" name="phone_number">
+                </div>
+                <div class="col-md-8">
+                  <label class="control-label">Address:</label>
+                  <input type="text" class="form-control" name="address">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" name="email">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-4">
+                  <label class="form-label">Working Hours</label>
+                  <input type="number" class="form-control" name="workHours" value="0">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Annual leave</label>
+                  <input type="number" class="form-control" name="annualLeave" value="0">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Wage</label>
+                  <input type="number" class="form-control" name="wage" value="0">
+                </div>
+              </div>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" name="is_active" id="is_active_create" checked>
+              <label class="form-check-label" for="is_active_create">Employed</label>
+            </div>
+          </form>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitCreateUser">Create User</button>
+        </div>
+      </div>
     </div>
+  </div>
+  
+  <!-- Edit User Modal -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="userEditForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="edit_user_id" name="user_id">
+            <div id="edit-form-content">
+              <!-- Form content will be loaded dynamically -->
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitEditUser">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Delete User Modal -->
+  <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+          <input type="hidden" id="delete_user_id">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteUser">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+<!-- Make sure jQuery is loaded before Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script>
-        $(document).ready(function () {
-            // Initialize toastr
-            toastr.options = {
-                "closeButton": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right"
-            };
-
-            // Add User Form Submission
-            $('#addUserForm').on('submit', function (e) {
-                e.preventDefault();
-                $.ajax({
-                    url: '{% url "staff:user_create" %}',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function (response) {
-                        if (response.success) {
-                            // Add new row to table
-                            const user = response.user;
-                            const newRow = `
-                            <tr id="userRow-${user.id}">
-                                <td>${user.id}</td>
-                                <td>${user.first_name || ''}</td>
-                                <td>${user.last_name || ''}</td>
-                                <td>${user.username}</td>
-                                <td>${user.email || ''}</td>
-                                <td class="${user.is_active ? 'text-success' : 'text-danger'}">
-                                    ${user.is_active ? 'Employed' : 'Unemployed'}
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-warning edit-user" data-user-id="${user.id}">
-                                        Edit
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-user" data-user-id="${user.id}">
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                            $('#usersTable tbody').append(newRow);
-                            $('#addUserModal').modal('hide');
-                            $('#addUserForm')[0].reset();
-                            toastr.success('User added successfully');
-                        } else {
-                            toastr.error(response.error || 'Error adding user');
-                        }
-                    },
-                    error: function (xhr) {
-                        toastr.error('Error adding user');
-                    }
-                });
-            });
-
-
-            // Edit User Click button
-            $(document).on('click', '.edit-user', function () {
-                const userId = $(this).data('user-id');
-                $('#editUserId').val(userId);
-
-                // Load user data into modal
-                $.ajax({
-                    url: "{% url 'staff:user_update_form' 0 %}".replace('0', userId),
-                    type: 'GET',
-                    success: function (response) {
-                        $('#editUserModalBody').html(response.form_html);  // Note the .form_html access
-                        $('#editUserModal').modal('show');
-
-                        // Initialize Select2 for groups
-                        $('.groups-select').select2({
-                            placeholder: "Select groups",
-                            allowClear: true,
-                            width: '100%'
-                        });
-                    },
-                    error: function () {
-                        toastr.error('Error loading user data');
-                    }
-                });
-            });
-
-            // Edit User Form Submission
-            $('#editUserForm').on('submit', function (e) {
-                e.preventDefault();
-                const userId = $('#editUserId').val();
-                const formData = $(this).serializeArray();
-
-                // Convert form data to object
-                let data = {};
-                $.each(formData, function (index, field) {
-                    data[field.name] = field.value;
-                });
-
-                // Handle groups separately
-                data['groups'] = $('.groups-select').val();
-                let groups = $('.groups-select').select2('data').map(item => item.id);
-                formData.push({name: 'groups[]', value: groups});
-
-                $.ajax({
-                    url: "{% url 'staff:user_update' 0 %}".replace('0', userId),
-                    type: 'POST',
-                    data: data,
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            // Update the row in the table
-                            const user = response.user;
-                            $(`#userRow-${user.id}`).html(`
-                            <td>${user.id}</td>
-                            <td>${user.first_name || ''}</td>
-                            <td>${user.last_name || ''}</td>
-                            <td>${user.username}</td>
-                            <td>${user.email || ''}</td>
-                            <td class="${user.is_active ? 'text-success' : 'text-danger'}">
-                                ${user.is_active ? 'Employed' : 'Unemployed'}
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-warning edit-user" data-user-id="${user.id}">
-                                    Edit
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger delete-user" data-user-id="${user.id}">
-                                    Delete
-                                </button>
-                            </td>
-                        `);
-                            $('#editUserModal').modal('hide');
-                            toastr.success('User updated successfully');
-                        } else {
-                            toastr.error(response.error || 'Error updating user');
-                        }
-                    },
-
-                    error: function (xhr) {
-                        toastr.error('Error updating user: ' + xhr.responseText);
-                    }
-                });
-            });
-
-
-
-            // Delete User Button Click
-            $(document).on('click', '.delete-user', function () {
-                const userId = $(this).data('user-id');
-                $('#deleteUserModal').data('user-id', userId).modal('show');
-            });
-
-            // Confirm Delete
-            $('#confirmDelete').on('click', function () {
-                const userId = $('#deleteUserModal').data('user-id');
-
-                $.ajax({
-                    url: "{% url 'staff:user_delete' 0 %}".replace('0', userId),
-                    type: 'POST',
-                    data: {
-                        'csrfmiddlewaretoken': '{{ csrf_token }}'
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            $(`#userRow-${userId}`).remove();
-                            $('#deleteUserModal').modal('hide');
-                            toastr.success('User deleted successfully');
-                        } else {
-                            toastr.error(response.error || 'Error deleting user');
-                        }
-                    },
-                    error: function () {
-                        toastr.error('Error deleting user');
-                    }
-                });
-            });
-
-            // Handle group changes
-            $(document).on('change', '.groups-select', function () {
-                const userId = $(this).data('user-id');
-                const groupIds = $(this).val();
-
-                $.ajax({
-                    url: '{% url "staff:update_user_groups" %}',
-                    method: 'POST',
-                    data: {
-                        'user_id': userId,
-                        'group_ids': groupIds,
-                        'csrfmiddlewaretoken': '{{ csrf_token }}'
-                    },
-                    success: function (response) {
-                        toastr.success('Groups updated successfully');
-                    },
-                    error: function (xhr) {
-                        toastr.error('Error updating groups');
-                    }
-                });
-            });
+<!-- JavaScript for User Management -->
+<script>
+    // Make sure this code executes when the document is ready
+    $(document).ready(function() {
+      console.log('Document ready - jQuery is working!');
+      
+      // Create user form submission
+      $('#submitCreateUser').click(function() {
+        console.log('Create User button clicked!');
+        
+        // Get form data
+        var form = $('#userCreateForm')[0];
+        console.log('Form found:', form !== undefined);
+        
+        // Basic validation
+        var username = $('input[name="username"]').val();
+        var password1 = $('input[name="password1"]').val();
+        var password2 = $('input[name="password2"]').val();
+        
+        console.log('Username:', username);
+        console.log('Password entered:', password1.length > 0);
+        console.log('Confirm password entered:', password2.length > 0);
+        
+        if (!username || !password1 || !password2) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+        
+        if (password1 !== password2) {
+          alert('Passwords do not match!');
+          return;
+        }
+        
+        // Create FormData object
+        var formData = new FormData(form);
+        
+        // Get selected groups
+        var selectedGroups = [];
+        $('#userCreateForm .groups-select option:selected').each(function() {
+          selectedGroups.push($(this).val());
         });
-    </script>
-</body>
-
-</html>
+        console.log('Selected groups:', selectedGroups);
+        
+        // Add groups to form data
+        if (selectedGroups.length > 0) {
+          // Remove any existing groups[] entries
+          formData.delete('groups[]');
+          
+          // Add each group ID
+          for (var i = 0; i < selectedGroups.length; i++) {
+            formData.append('groups[]', selectedGroups[i]);
+          }
+        }
+        
+        // Submit the form via AJAX
+        console.log('Submitting AJAX request...');
+        $.ajax({
+          url: '{% url "staff:user_create" %}',
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            console.log('AJAX success:', response);
+            if (response.success) {
+              // Show success message
+              alert('User created successfully!');
+              // Close modal
+              $('#createUserModal').modal('hide');
+              // Reload the page to show the new user
+              location.reload();
+            } else {
+              // Show error message
+              alert('Error: ' + response.error);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('AJAX error:', xhr);
+            console.error('Status:', status);
+            console.error('Error:', error);
+            alert('Server error: ' + (xhr.responseText || xhr.statusText || error));
+          }
+        });
+      });
+      
+      // Form input formatting and validation for numeric fields
+      $('input[name="workHours"], input[name="annualLeave"], input[name="wage"]').on('input', function() {
+        // Remove non-numeric characters except decimal point
+        $(this).val($(this).val().replace(/[^0-9.]/g, ''));
+        
+        // Ensure only one decimal point
+        var val = $(this).val();
+        var parts = val.split('.');
+        if (parts.length > 2) {
+          $(this).val(parts[0] + '.' + parts.slice(1).join(''));
+        }
+      });
+      
+      // Edit user modal
+      $('.edit-user').click(function() {
+        console.log('Edit user button clicked');
+        var userId = $(this).data('user-id');
+        console.log('User ID:', userId);
+        $('#edit_user_id').val(userId);
+        
+        // Load user data into form
+        $.ajax({
+          url: '{% url "staff:user_update_form" pk=0 %}'.replace('0', userId),
+          type: 'GET',
+          success: function(response) {
+            console.log('Load user form success');
+            $('#edit-form-content').html(response.form_html);
+            $('#editUserModal').modal('show');
+          },
+          error: function(xhr, status, error) {
+            console.error('Load user form error:', xhr);
+            alert('Error loading user data: ' + xhr.statusText);
+          }
+        });
+      });
+      
+      // Submit edit user form
+      $('#submitEditUser').click(function() {
+        console.log('Save changes button clicked');
+        var userId = $('#edit_user_id').val();
+        console.log('Editing user ID:', userId);
+        var formData = new FormData($('#userEditForm')[0]);
+        
+        // Get selected groups
+        var selectedGroups = [];
+        $('#editUserModal .groups-select option:selected').each(function() {
+          selectedGroups.push($(this).val());
+        });
+        console.log('Selected groups for edit:', selectedGroups);
+        
+        // Add groups to form data
+        if (selectedGroups.length > 0) {
+          formData.delete('groups[]');
+          for (var i = 0; i < selectedGroups.length; i++) {
+            formData.append('groups[]', selectedGroups[i]);
+          }
+        }
+        
+        $.ajax({
+          url: '{% url "staff:user_update" pk=0 %}'.replace('0', userId),
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            console.log('Update success:', response);
+            if (response.success) {
+              alert('User updated successfully!');
+              $('#editUserModal').modal('hide');
+              location.reload();
+            } else {
+              alert('Error: ' + response.error);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('Update error:', xhr);
+            alert('Server error: ' + xhr.statusText);
+          }
+        });
+      });
+      
+      // Delete user modal
+      $('.delete-user').click(function() {
+        console.log('Delete button clicked');
+        var userId = $(this).data('user-id');
+        console.log('User ID to delete:', userId);
+        $('#delete_user_id').val(userId);
+        $('#deleteUserModal').modal('show');
+      });
+      
+      // Confirm delete user
+      $('#confirmDeleteUser').click(function() {
+        console.log('Confirm delete button clicked');
+        var userId = $('#delete_user_id').val();
+        console.log('Confirming deletion of user ID:', userId);
+        
+        $.ajax({
+          url: '{% url "staff:user_delete" pk=0 %}'.replace('0', userId),
+          type: 'POST',
+          data: {
+            'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+          },
+          success: function(response) {
+            console.log('Delete success:', response);
+            if (response.success) {
+              alert('User deleted successfully!');
+              $('#deleteUserModal').modal('hide');
+              location.reload();
+            } else {
+              alert('Error: ' + response.error);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('Delete error:', xhr);
+            alert('Server error: ' + xhr.statusText);
+          }
+        });
+      });
+      
+      // Reset forms when modals are closed
+      $('#createUserModal').on('hidden.bs.modal', function() {
+        console.log('Create modal closed - resetting form');
+        $('#userCreateForm')[0].reset();
+      });
+      
+      $('#editUserModal').on('hidden.bs.modal', function() {
+        console.log('Edit modal closed - clearing content');
+        $('#edit-form-content').html('');
+      });
+    });
+  </script>
+<style>
+  /* Additional custom styles for dark theme forms */
+  .modal-content {
+    background-color: #1a1a1a;
+    color: #fff;
+  }
+  
+  .modal-header, .modal-footer {
+    border-color: #333;
+  }
+  
+  .form-control {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+  }
+  
+  .form-control:focus {
+    background-color: #333;
+    border-color: #007bff;
+    color: #fff;
+  }
+  
+  .text-muted {
+    color: #aaa !important;
+  }
+  
+  .form-select {
+    background-color: #2a2a2a;
+    color: #fff;
+    border-color: #444;
+  }
+  
+  .form-select option {
+    background-color: #2a2a2a;
+    color: #fff;
+  }
+  
+  .form-check-input {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+  
+  .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  /* Table styles */
+  .table {
+    color: #fff;
+  }
+  
+  .table thead th {
+    border-bottom-color: #333;
+  }
+  
+  .table td, .table th {
+    border-top-color: #333;
+  }
+  
+  /* Card styles */
+  .card {
+    background-color: #1a1a1a;
+    border-color: #333;
+  }
+  
+  .card-header {
+    background-color: #222;
+    border-bottom-color: #333;
+  }
+</style>
 {% endblock %}
