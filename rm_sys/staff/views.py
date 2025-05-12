@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from shared.decorators import allowed_users
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
@@ -9,12 +9,82 @@ from django.dispatch import receiver
 from .models import UserProfile
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
+from .models import InventoryItem, Category
+from .forms import InventoryItemForm, CategoryForm
+from django.contrib import messages
+from django.db.models import Q
+from django.db import models
 import json
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory'])
 def inventoryPage(request):
-    return render(request, "inventory.html")
+    query = request.GET.get('q')
+    items = InventoryItem.objects.all().order_by('name')
+    
+    if query:
+        items = items.filter(
+            Q(name__icontains=query) |
+            Q(category__name__icontains=query)
+        )
+    
+    low_stock = items.filter(quantity__lte=models.F('reorder_level'))
+    
+    context = {
+        'items': items,
+        'low_stock': low_stock,
+        'query': query,
+    }
+    return render(request, 'inventory/inventory.html', context)
 
+def add_item(request):
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Item added successfully!')
+            return redirect('staff:inventory_list')
+    else:
+        form = InventoryItemForm()
+    
+    return render(request, 'inventory/add_item.html', {'form': form})
+
+def edit_item(request, item_id):
+    item = get_object_or_404(InventoryItem, id=item_id)
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Item updated successfully!')
+            return redirect('staff:inventory_list')
+    else:
+        form = InventoryItemForm(instance=item)
+    
+    return render(request, 'inventory/edit_item.html', {'form': form, 'item': item})
+
+def delete_item(request, item_id):
+    item = get_object_or_404(InventoryItem, id=item_id)
+    if request.method == 'POST':
+        item.delete()
+        messages.success(request, 'Item deleted successfully!')
+        return redirect('staff:inventory_list')
+    
+    return render(request, 'inventory/confirm_delete.html', {'item': item})
+
+def category_list(request):
+    categories = Category.objects.all().order_by('name')
+    return render(request, 'inventory/categories.html', {'categories': categories})
+
+def add_category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category added successfully!')
+            return redirect('inventory/categories.html')
+    else:
+        form = CategoryForm()
+    
+    return render(request, 'inventory/add_category.html', {'form': form})
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'kitchen'])
 def orderPage(request):
