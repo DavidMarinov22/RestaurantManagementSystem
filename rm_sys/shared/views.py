@@ -32,7 +32,7 @@ def loginPage(request):
 
         if user is not None:
             login(request, user)    
-            return redirect('shared:home')
+            return redirect('staff:user-page')
         else:
             messages.info(request, "Username OR password is incorrect")
 

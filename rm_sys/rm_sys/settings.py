@@ -108,7 +108,7 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'auth.User'
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = "shared:home"
+LOGIN_REDIRECT_URL = "staff:user"
 LOGOUT_REDIRECT_URL = "shared:login"
 
 # Internationalization

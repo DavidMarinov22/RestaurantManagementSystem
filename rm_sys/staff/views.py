@@ -36,6 +36,9 @@ def accountPage(request):
         'all_groups': groups
     }
     return render(request, "accounts.html", context)
+@allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
+def userPage(request):
+    return render(request, "user.html")
 
 class UserCreateView(CreateView):
     model = User
@@ -128,6 +131,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
+<<<<<<< HEAD
     try:
         instance.userprofile.save()
     except User.userprofile.RelatedObjectDoesNotExist:
@@ -138,6 +142,9 @@ def userPage(request):
 
 
 
+=======
+    instance.userprofile.save()
+>>>>>>> 02b109099066b07c441d151e4d3b64b05365648c
 
 @allowed_users(allowed_roles=['manager'])
 def accountPage(request):
