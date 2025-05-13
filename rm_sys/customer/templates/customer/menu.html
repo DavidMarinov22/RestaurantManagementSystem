@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Menu page styling */
+    body {
+        background-color: #1a1a1a;
+        color: #fff;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .menu-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    
+    .menu-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .menu-title {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #fff;
+    }
+    
+    .menu-subtitle {
+        color: #ccc;
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .menu-navigation {
+        background-color: #222;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    
+    .menu-nav-pills {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .menu-nav-item {
+        margin: 0;
+    }
+    
+    .menu-nav-link {
+        display: block;
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 30px;
+        transition: all 0.3s;
+    }
+    
+    .menu-nav-link:hover, .menu-nav-link.active {
+        background-color: #fff;
+        color: #000;
+    }
+    
+    .menu-section {
+        margin-bottom: 60px;
+    }
+    
+    .menu-category {
+        font-size: 2.2rem;
+        color: #fff;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #333;
+    }
+    
+    .menu-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+    }
+    
+    .menu-item-card {
+        background-color: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .menu-item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+    
+    .menu-item-content {
+        padding: 25px;
+    }
+    
+    .menu-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .menu-item-title {
+        font-size: 1.5rem;
+        color: #fff;
+        margin: 0;
+    }
+    
+    .menu-item-price {
+        font-size: 1.5rem;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .menu-item-description {
+        color: #ccc;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    .menu-return {
+        text-align: center;
+        margin-top: 60px;
+    }
+    
+    .btn-back {
+        display: inline-block;
+        padding: 12px 30px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+    
+    .btn-back:hover {
+        background-color: #fff;
+        color: #000;
+    }
+    
+    /* Unavailable item styling */
+    .menu-item-unavailable {
+        opacity: 0.6;
+    }
+    
+    .unavailable-tag {
+        background-color: #f44336;
+        color: white;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        margin-left: 10px;
+    }
+    
+    /* Media queries for responsive design */
+    @media (max-width: 768px) {
+        .menu-items-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+        
+        .menu-title {
+            font-size: 2.5rem;
+        }
+        
+        .menu-category {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="menu-container">
+    <div class="menu-header">
+        <h1 class="menu-title">Our Menu</h1>
+        <p class="menu-subtitle">Carefully crafted dishes using the finest ingredients</p>
+    </div>
+    
+    <div class="menu-navigation">
+        <ul class="menu-nav-pills">
+            {% for category, items in menu_by_category.items %}
+                <li class="menu-nav-item">
+                    <a class="menu-nav-link" href="#{{ category|slugify }}">{{ category }}</a>
+                </li>
+            {% empty %}
+                <li class="menu-nav-item">
+                    <span class="menu-nav-link">No Categories Available</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    {% for category, items in menu_by_category.items %}
+        <section id="{{ category|slugify }}" class="menu-section">
+            <h2 class="menu-category">{{ category }}</h2>
+            <div class="menu-items-grid">
+                {% for item in items %}
+                    <div class="menu-item-card {% if not item.is_available %}menu-item-unavailable{% endif %}">
+                        <div class="menu-item-content">
+                            <div class="menu-item-header">
+                                <h3 class="menu-item-title">
+                                    {{ item.name }}
+                                    {% if not item.is_available %}
+                                        <span class="unavailable-tag">Unavailable</span>
+                                    {% endif %}
+                                </h3>
+                                <span class="menu-item-price">${{ item.price }}</span>
+                            </div>
+                            <p class="menu-item-description">{{ item.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% empty %}
+        <div class="alert alert-info">
+            <p>We're currently updating our menu. Please check back soon!</p>
+        </div>
+    {% endfor %}
+    
+    <div class="menu-return">
+        <a href="{% url 'shared:home' %}" class="btn-back">Return to Homepage</a>
+    </div>
+</div>
+
+<script>
+    // Make the menu navigation sticky on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuNav = document.querySelector('.menu-navigation');
+        const initialOffset = menuNav.offsetTop;
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset >= initialOffset) {
+                menuNav.classList.add('sticky');
+            } else {
+                menuNav.classList.remove('sticky');
+            }
+        });
+        
+        // Highlight active category when scrolling
+        const sections = document.querySelectorAll('.menu-section');
+        const navLinks = document.querySelectorAll('.menu-nav-link');
+        
+        window.addEventListener('scroll', function() {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

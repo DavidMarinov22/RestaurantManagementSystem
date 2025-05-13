@@ -6,6 +6,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Table, Reservation
 from .forms import ReservationForm
+from staff.models import MenuItem
 
 # UC1: View Table Availability
 class TableAvailabilityView(View):
@@ -249,3 +250,23 @@ def update_all_table_statuses():
     tables = Table.objects.all()
     for table in tables:
         table.update_status_based_on_reservations()
+
+class CustomerMenuView(View):
+    """View for customers to browse the restaurant menu"""
+    def get(self, request):
+        # Get all menu items grouped by category
+        categories = MenuItem.objects.values_list('category', flat=True).distinct()
+        menu_by_category = {}
+        
+        for category in categories:
+            menu_by_category[category] = MenuItem.objects.filter(
+                category=category, 
+                is_available=True
+            ).order_by('name')
+        
+        context = {
+            'menu_by_category': menu_by_category,
+            'title': 'Our Menu'
+        }
+        
+        return render(request, 'customer/menu.html', context)

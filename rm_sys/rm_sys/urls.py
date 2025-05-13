@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path , include
+from customer.views import CustomerMenuView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,4 +24,5 @@ urlpatterns = [
     path('', include(('shared.urls', "shared"), "shared")),
     path('', include(('customer.urls', 'customer'), 'customer')),
     path('', include(('staff.urls', "staff"), "staff")),
+    path('customer/menu/', CustomerMenuView.as_view(), name='customer_menu'),
 ]
