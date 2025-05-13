@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3>Delete Schedule</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <p>Are you sure you want to delete the following schedule?</p>
+                        <p><strong>Staff:</strong> {{ schedule.staff.first_name }} {{ schedule.staff.last_name }}</p>
+                        <p><strong>Time:</strong> {{ schedule.start_time|date:"D, M d h:i A" }} to {{ schedule.end_time|date:"h:i A" }}</p>
+                        {% if schedule.note %}
+                            <p><strong>Notes:</strong> {{ schedule.note }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'staff:schedules' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

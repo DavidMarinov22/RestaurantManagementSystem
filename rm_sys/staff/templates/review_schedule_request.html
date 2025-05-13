@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Review Schedule Request</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Request Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Staff Member:</strong> {{ request.staff.first_name }} {{ request.staff.last_name }}</p>
+                                <p><strong>Request Type:</strong> {{ request.get_request_type_display }}</p>
+                                <p><strong>Date Requested:</strong> {{ request.date_requested|date:"M d, Y h:i A" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Requested Time:</strong> {{ request.requested_start_time|date:"D, M d h:i A" }} to {{ request.requested_end_time|date:"h:i A" }}</p>
+                                {% if request.original_schedule %}
+                                    <p><strong>Original Schedule:</strong> {{ request.original_schedule.start_time|date:"D, M d h:i A" }} to {{ request.original_schedule.end_time|date:"h:i A" }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <p><strong>Reason:</strong> {{ request.reason }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Decision</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.manager_note.id_for_label }}" class="form-label">Note to Staff</label>
+                            {{ form.manager_note }}
+                            {% if form.manager_note.errors %}
+                                <div class="text-danger">{{ form.manager_note.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'staff:schedules' %}" class="btn btn-secondary">Back</a>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

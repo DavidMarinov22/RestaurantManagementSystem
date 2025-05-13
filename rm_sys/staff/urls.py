@@ -5,7 +5,8 @@ from .views import (
     get_user_form, create_user_ajax, update_user_ajax, delete_user_ajax,
     add_item, edit_item, delete_item, category_list, add_category,
     # New order management views
-    menuPage, create_order, kitchenPage, update_order_status, order_details,create_order_simple
+    menuPage, create_order, kitchenPage, update_order_status, order_details,create_order_simple,
+    add_schedule, edit_schedule, delete_schedule, request_schedule_change, review_schedule_request
 )
 
 urlpatterns = [
@@ -39,4 +40,12 @@ urlpatterns = [
     path("kitchen/", kitchenPage, name="kitchen"),
     path("update_order/<int:order_id>/", update_order_status, name="update_order_status"),
     path("order_details/<int:order_id>/", order_details, name="order_details"),
+
+    # Schedule Management URLs
+    path("schedules/", schedulePage, name="schedules"),
+    path("schedules/add/", add_schedule, name="add_schedule"),
+    path("schedules/edit/<int:schedule_id>/", edit_schedule, name="edit_schedule"),
+    path("schedules/delete/<int:schedule_id>/", delete_schedule, name="delete_schedule"),
+    path("schedules/request-change/", request_schedule_change, name="request_schedule_change"),
+    path("schedules/review-request/<int:request_id>/", review_schedule_request, name="review_schedule_request"),
 ]

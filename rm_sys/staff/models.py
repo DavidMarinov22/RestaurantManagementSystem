@@ -13,6 +13,20 @@ ORDER_STATUS_CHOICES = [
     ('cancelled', 'Cancelled')
 ]
 
+# Schedule status choices
+SCHEDULE_STATUS_CHOICES = [
+    ('pending', 'Pending Approval'),
+    ('approved', 'Approved'),
+    ('declined', 'Declined'),
+    ('modified', 'Modified')
+]
+
+# Request type choices (for staff, only change and time_off are allowed)
+REQUEST_TYPE_CHOICES = [
+    ('change', 'Change Request'),
+    ('time_off', 'Time Off Request')
+]
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20, blank=True)
@@ -56,6 +70,7 @@ class MenuItem(models.Model):
     
     def __str__(self):
         return self.name
+
 class Order(models.Model):
     """Model representing a customer order"""
     table_number = models.IntegerField(validators=[MinValueValidator(1)])
@@ -85,3 +100,37 @@ class OrderItem(models.Model):
     def item_total(self):
         """Calculate the total price for this line item"""
         return self.quantity * self.menu_item.price
+
+class Schedule(models.Model):
+    """Model representing staff work schedules"""
+    staff = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=SCHEDULE_STATUS_CHOICES, default='approved')
+    note = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.staff.username}'s Schedule - {self.start_time.strftime('%Y-%m-%d')}"
+    
+    def duration_hours(self):
+        """Calculate the duration of the shift in hours"""
+        duration = self.end_time - self.start_time
+        return duration.total_seconds() / 3600
+
+class ScheduleChangeRequest(models.Model):
+    """Model representing schedule change requests from staff"""
+    staff = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedule_requests')
+    original_schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='change_requests', null=True, blank=True)
+    requested_start_time = models.DateTimeField()
+    requested_end_time = models.DateTimeField()
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES, default='change')
+    reason = models.TextField()
+    date_requested = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=SCHEDULE_STATUS_CHOICES, default='pending')
+    manager_note = models.TextField(blank=True, null=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.staff.username}'s Request - {self.date_requested.strftime('%Y-%m-%d')}"

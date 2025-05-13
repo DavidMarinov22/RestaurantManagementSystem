@@ -6,17 +6,23 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import UserProfile, MenuItem, Order, OrderItem
+from .models import (
+    UserProfile, MenuItem, Order, OrderItem, InventoryItem, Category,
+    Schedule, ScheduleChangeRequest, SCHEDULE_STATUS_CHOICES, REQUEST_TYPE_CHOICES
+)
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
-from .models import InventoryItem, Category
-from .forms import InventoryItemForm, CategoryForm
+from .forms import (
+    InventoryItemForm, CategoryForm, ScheduleForm, 
+    ScheduleChangeRequestForm, ScheduleChangeReviewForm
+)
 from django.contrib import messages
 from django.db.models import Q, F
 from django.utils import timezone
 import json
 import datetime
 from django.core.validators import MinValueValidator
+from datetime import timedelta
 
 # Order status choices
 ORDER_STATUS_CHOICES = [
@@ -297,9 +303,202 @@ def order_details(request, order_id):
     
     return render(request, 'order_details.html', context)
 
+# Schedule Management Views
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
 def schedulePage(request):
-    return render(request, "schedules.html")
+    """View for staff to see their schedules and make requests"""
+    # Get dates for the current week (Monday to Sunday)
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday())  # Monday
+    end_of_week = start_of_week + timedelta(days=6)  # Sunday
+    
+    # For regular staff, show only their schedules
+    if not request.user.groups.filter(name='manager').exists():
+        schedules = Schedule.objects.filter(
+            staff=request.user,
+            start_time__date__gte=start_of_week,
+            start_time__date__lte=end_of_week + timedelta(days=14)  # Show next 3 weeks
+        ).order_by('start_time')
+        
+        # Get pending change requests
+        pending_requests = ScheduleChangeRequest.objects.filter(
+            staff=request.user,
+            status='pending'
+        ).order_by('-date_requested')
+        
+        # Get recent request history
+        request_history = ScheduleChangeRequest.objects.filter(
+            staff=request.user
+        ).exclude(status='pending').order_by('-date_requested')[:5]
+        
+        context = {
+            'schedules': schedules,
+            'pending_requests': pending_requests,
+            'request_history': request_history,
+            'start_of_week': start_of_week,
+            'end_of_week': end_of_week + timedelta(days=14)
+        }
+    
+    # For managers, show all staff schedules
+    else:
+        schedules = Schedule.objects.filter(
+            start_time__date__gte=start_of_week,
+            start_time__date__lte=end_of_week + timedelta(days=14)  # Show next 3 weeks
+        ).order_by('start_time')
+        
+        # Get pending change requests for approval
+        pending_requests = ScheduleChangeRequest.objects.filter(
+            status='pending'
+        ).order_by('-date_requested')
+        
+        # Group schedules by staff for easier viewing
+        staff_schedules = {}
+        for schedule in schedules:
+            if schedule.staff not in staff_schedules:
+                staff_schedules[schedule.staff] = []
+            staff_schedules[schedule.staff].append(schedule)
+        
+        context = {
+            'staff_schedules': staff_schedules,
+            'pending_requests': pending_requests,
+            'start_of_week': start_of_week,
+            'end_of_week': end_of_week + timedelta(days=14)
+        }
+    
+    return render(request, "schedules.html", context)
+
+@allowed_users(allowed_roles=['manager'])
+def add_schedule(request):
+    """Add a new schedule for a staff member"""
+    if request.method == 'POST':
+        form = ScheduleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Schedule added successfully!")
+            return redirect('staff:schedules')
+    else:
+        # Initialize with current date/time
+        initial_time = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)  # Default to 9 AM
+        form = ScheduleForm(initial={
+            'start_time': initial_time,
+            'end_time': initial_time + timedelta(hours=8)  # Default 8-hour shift
+        })
+    
+    context = {
+        'form': form, 
+        'action': 'Add'
+    }
+    return render(request, 'schedule_form.html', context)
+
+@allowed_users(allowed_roles=['manager'])
+def edit_schedule(request, schedule_id):
+    """Edit an existing schedule"""
+    schedule = get_object_or_404(Schedule, id=schedule_id)
+    
+    if request.method == 'POST':
+        form = ScheduleForm(request.POST, instance=schedule)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Schedule updated successfully!")
+            return redirect('staff:schedules')
+    else:
+        form = ScheduleForm(instance=schedule)
+    
+    context = {
+        'form': form, 
+        'action': 'Edit', 
+        'schedule': schedule
+    }
+    return render(request, 'schedule_form.html', context)
+
+@allowed_users(allowed_roles=['manager'])
+def delete_schedule(request, schedule_id):
+    """Delete a schedule"""
+    schedule = get_object_or_404(Schedule, id=schedule_id)
+    
+    if request.method == 'POST':
+        schedule.delete()
+        messages.success(request, "Schedule deleted successfully!")
+        return redirect('staff:schedules')
+    
+    return render(request, 'confirm_delete_schedule.html', {'schedule': schedule})
+
+@allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
+def request_schedule_change(request):
+    """Allow staff to request a schedule change or time off"""
+    if request.method == 'POST':
+        form = ScheduleChangeRequestForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            change_request = form.save(commit=False)
+            change_request.staff = request.user
+            
+            # Staff can only make 'change' or 'time_off' requests
+            if change_request.request_type not in ['change', 'time_off']:
+                messages.error(request, "Invalid request type. Staff can only request schedule changes or time off.")
+                return redirect('staff:schedules')
+                
+            change_request.save()
+            messages.success(request, "Your schedule change request has been submitted!")
+            return redirect('staff:schedules')
+    else:
+        # Initialize with current date/time
+        initial_time = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)  # Default to 9 AM
+        form = ScheduleChangeRequestForm(
+            user=request.user,
+            initial={
+                'requested_start_time': initial_time,
+                'requested_end_time': initial_time + timedelta(hours=8)  # Default 8-hour shift
+            }
+        )
+    
+    return render(request, 'schedule_change_request_form.html', {'form': form})
+
+@allowed_users(allowed_roles=['manager'])
+def review_schedule_request(request, request_id):
+    """Allow managers to review schedule change requests"""
+    change_request = get_object_or_404(ScheduleChangeRequest, id=request_id)
+    
+    if request.method == 'POST':
+        form = ScheduleChangeReviewForm(request.POST, instance=change_request)
+        if form.is_valid():
+            # Update the request
+            reviewed_request = form.save(commit=False)
+            reviewed_request.reviewed_at = timezone.now()
+            reviewed_request.save()
+            
+            # If approved, update the original schedule or handle time off
+            if reviewed_request.status == 'approved':
+                if reviewed_request.request_type == 'change' and reviewed_request.original_schedule:
+                    # Update existing schedule
+                    schedule = reviewed_request.original_schedule
+                    schedule.start_time = reviewed_request.requested_start_time
+                    schedule.end_time = reviewed_request.requested_end_time
+                    schedule.note = f"Updated based on change request #{reviewed_request.id}"
+                    schedule.save()
+                    
+                elif reviewed_request.request_type == 'time_off':
+                    # Check if there are any existing schedules that overlap with the requested time
+                    overlapping_schedules = Schedule.objects.filter(
+                        staff=reviewed_request.staff,
+                        start_time__lt=reviewed_request.requested_end_time,
+                        end_time__gt=reviewed_request.requested_start_time
+                    )
+                    
+                    # Remove overlapping schedules for time off
+                    for schedule in overlapping_schedules:
+                        schedule.delete()
+            
+            messages.success(request, f"Schedule request #{request_id} has been {reviewed_request.get_status_display().lower()}!")
+            return redirect('staff:schedules')
+    else:
+        form = ScheduleChangeReviewForm(instance=change_request)
+    
+    context = {
+        'form': form,
+        'request': change_request
+    }
+    
+    return render(request, 'review_schedule_request.html', context)
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
 def userPage(request):
@@ -634,6 +833,7 @@ def delete_user_ajax(request, pk):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
 @allowed_users(allowed_roles=['manager', 'waiter'])
 def create_order_simple(request):
     """Simple form-based order creation"""
