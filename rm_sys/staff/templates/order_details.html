@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1>Order Details</h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'staff:orders' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header {% if order.status == 'pending' %}bg-warning{% elif order.status == 'in_progress' %}bg-info{% elif order.status == 'ready' %}bg-success{% elif order.status == 'completed' %}bg-secondary{% endif %} text-white">
+            <h5 class="mb-0">Order #{{ order.id }} - Table {{ order.table_number }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <strong>Status:</strong> 
+                        {% if order.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elif order.status == 'in_progress' %}
+                            <span class="badge bg-info">In Progress</span>
+                        {% elif order.status == 'ready' %}
+                            <span class="badge bg-success">Ready for Pickup</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="badge bg-secondary">Completed</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Waiter:</strong> {{ order.waiter.first_name }} {{ order.waiter.last_name }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Ordered At:</strong> {{ order.created_at|date:"F j, Y H:i" }}
+                    </div>
+                    {% if order.status != 'pending' %}
+                        <div class="mb-3">
+                            <strong>Last Updated:</strong> {{ order.updated_at|date:"F j, Y H:i" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    {% if order.special_instructions %}
+                        <div class="alert alert-info">
+                            <strong>Special Instructions:</strong><br>
+                            {{ order.special_instructions }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h4 class="mt-4 mb-3">Order Items</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Notes</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr class="text-light">
+                                <td class="text-light">{{ item.menu_item.name }}</td>
+                                <td class="text-light">{{ item.quantity }}</td>
+                                <td class="text-light">£{{ item.menu_item.price }}</td>
+                                <td class="text-light">{{ item.notes|default:"—" }}</td>
+                                <td class="text-end text-light">£{{ item.item_total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th colspan="4" class="text-end">Total:</th>
+                            <th class="text-end">£{{ total_price }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            {% if order.status == 'ready' %}
+                <div class="text-center mt-4">
+                    <button class="btn btn-success mark-complete" data-order-id="{{ order.id }}">
+                        <i class="fas fa-check"></i> Mark as Delivered
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to mark this order as delivered? This will complete the order.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmComplete">Mark as Delivered</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Override Bootstrap's table-striped behavior to ensure text is visible */
+    .table-striped > tbody > tr {
+        color: #212529 !important; /* Dark text color for all rows */
+    }
+    
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .table-striped > tbody > tr:nth-of-type(even) {
+        background-color: #ffffff;
+    }
+    
+    /* Add some padding and border styling */
+    .table th, .table td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+    
+    /* Make the headings more visible */
+    .table thead th {
+        font-weight: bold;
+        color: white;
+    }
+    
+    /* Style the footer */
+    .table tfoot th {
+        color: white;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const markCompleteBtn = document.querySelector('.mark-complete');
+        if (markCompleteBtn) {
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const orderId = markCompleteBtn.getAttribute('data-order-id');
+            
+            markCompleteBtn.addEventListener('click', function() {
+                confirmModal.show();
+            });
+            
+            document.getElementById('confirmComplete').addEventListener('click', function() {
+                // Send request to update order status - FIXED URL
+                fetch('{% url "staff:update_order_status" 0 %}'.replace('0', orderId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: 'status=completed'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to orders list
+                        window.location.href = "{% url 'staff:orders' %}";
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+                
+                confirmModal.hide();
+            });
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

@@ -6,15 +6,26 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import UserProfile
+from .models import UserProfile, MenuItem, Order, OrderItem
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from .models import InventoryItem, Category
 from .forms import InventoryItemForm, CategoryForm
 from django.contrib import messages
-from django.db.models import Q
-from django.db import models
+from django.db.models import Q, F
+from django.utils import timezone
 import json
+import datetime
+from django.core.validators import MinValueValidator
+
+# Order status choices
+ORDER_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('in_progress', 'In Progress'),
+    ('ready', 'Ready for Pickup'),
+    ('completed', 'Completed'),
+    ('cancelled', 'Cancelled')
+]
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory'])
 def inventoryPage(request):
@@ -27,7 +38,7 @@ def inventoryPage(request):
             Q(category__name__icontains=query)
         )
     
-    low_stock = items.filter(quantity__lte=models.F('reorder_level'))
+    low_stock = items.filter(quantity__lte=F('reorder_level'))
     
     context = {
         'items': items,
@@ -88,7 +99,203 @@ def add_category(request):
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'kitchen'])
 def orderPage(request):
-    return render(request, "orders.html")
+    """Order page that redirects based on user role"""
+    # For kitchen staff, redirect to kitchen dashboard
+    if request.user.groups.filter(name='kitchen').exists():
+        return kitchenPage(request)
+    
+    # For waiters, show waiter order view
+    # For waiters, only show their own orders
+    if request.user.groups.filter(name='waiter').exists():
+        pending_orders = Order.objects.filter(
+            waiter=request.user,
+            status__in=['pending', 'in_progress', 'ready']
+        ).order_by('-created_at')
+        
+        completed_orders = Order.objects.filter(
+            waiter=request.user,
+            status='completed'
+        ).order_by('-updated_at')[:10]  # Show only the 10 most recent completed orders
+    
+    # For managers, show all orders
+    else:
+        pending_orders = Order.objects.filter(
+            status__in=['pending', 'in_progress', 'ready']
+        ).order_by('-created_at')
+        
+        completed_orders = Order.objects.filter(
+            status='completed'
+        ).order_by('-updated_at')[:10]
+    
+    context = {
+        'pending_orders': pending_orders,
+        'completed_orders': completed_orders,
+    }
+    
+    return render(request, 'orders.html', context)
+
+@allowed_users(allowed_roles=['manager', 'kitchen'])
+def kitchenPage(request):
+    """View for kitchen staff to see and update orders"""
+    # Get all orders that are pending or in progress
+    pending_orders = Order.objects.filter(status='pending').order_by('created_at')
+    in_progress_orders = Order.objects.filter(status='in_progress').order_by('created_at')
+    ready_orders = Order.objects.filter(status='ready').order_by('updated_at')
+    
+    context = {
+        'pending_orders': pending_orders,
+        'in_progress_orders': in_progress_orders,
+        'ready_orders': ready_orders,
+    }
+    
+    return render(request, 'kitchen.html', context)
+
+@allowed_users(allowed_roles=['manager', 'waiter'])
+def menuPage(request):
+    """View to display the menu for waitstaff to create orders"""
+    # Get all menu items grouped by category
+    categories = MenuItem.objects.values_list('category', flat=True).distinct()
+    menu_by_category = {}
+    
+    for category in categories:
+        menu_by_category[category] = MenuItem.objects.filter(
+            category=category, 
+            is_available=True
+        ).order_by('name')
+    
+    # Get all tables for selection
+    tables = list(range(1, 21))  # Assuming tables 1-20
+    
+    context = {
+        'menu_by_category': menu_by_category,
+        'tables': tables,
+    }
+    
+    return render(request, 'menu.html', context)
+
+@allowed_users(allowed_roles=['manager', 'waiter'])
+def create_order(request):
+    """Handle order creation via AJAX"""
+    if request.method == 'POST':
+        try:
+            print("Create order view called") # Debug statement
+            data = json.loads(request.body)
+            table_number = data.get('table_number')
+            special_instructions = data.get('special_instructions', '')
+            items = data.get('items', [])
+
+            # Validate data
+            if not table_number or not items:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Missing required data'
+                }, status=400)
+            
+            # Create order
+            order = Order.objects.create(
+                table_number=table_number,
+                waiter=request.user,
+                special_instructions=special_instructions,
+                status='pending'
+            )
+            
+            # Add order items
+            for item in items:
+                menu_item = get_object_or_404(MenuItem, id=item.get('id'))
+                quantity = item.get('quantity', 1)
+                notes = item.get('notes', '')
+                
+                OrderItem.objects.create(
+                    order=order,
+                    menu_item=menu_item,
+                    quantity=quantity,
+                    notes=notes
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'order_id': order.id
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)
+
+@allowed_users(allowed_roles=['manager', 'kitchen', 'waiter'])
+def update_order_status(request, order_id):
+    """Update the status of an order"""
+    if request.method == 'POST':
+        try:
+            order = get_object_or_404(Order, id=order_id)
+            
+            # Get status from either POST data or JSON data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                new_status = data.get('status')
+            else:
+                new_status = request.POST.get('status')
+            
+            # Validate the new status
+            valid_statuses = [status[0] for status in ORDER_STATUS_CHOICES]
+            if new_status not in valid_statuses:
+                if 'application/json' in request.content_type:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Invalid status'
+                    }, status=400)
+                else:
+                    messages.error(request, 'Invalid status')
+                    return redirect('staff:kitchen')
+            
+            # Update the order status
+            order.status = new_status
+            order.save()
+            
+            # Check if this is an AJAX request or regular form submission
+            if 'application/json' in request.content_type:
+                return JsonResponse({
+                    'success': True
+                })
+            else:
+                messages.success(request, f'Order #{order.id} status updated successfully')
+                return redirect('staff:kitchen')
+            
+        except Exception as e:
+            if 'application/json' in request.content_type:
+                return JsonResponse({
+                    'success': False,
+                    'error': str(e)
+                }, status=500)
+            else:
+                messages.error(request, f'Error updating order: {str(e)}')
+                return redirect('staff:kitchen')
+    
+    # For GET requests
+    return redirect('staff:kitchen')
+
+@allowed_users(allowed_roles=['manager', 'waiter'])
+def order_details(request, order_id):
+    """View the details of a specific order"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Check if the user has permission to view this order
+    if not request.user.groups.filter(name='manager').exists() and order.waiter != request.user:
+        return redirect('staff:orderPage')
+    
+    context = {
+        'order': order,
+        'order_items': order.items.all(),
+        'total_price': order.total_price(),
+    }
+    
+    return render(request, 'order_details.html', context)
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'inventory', 'kitchen'])
 def schedulePage(request):
@@ -427,3 +634,49 @@ def delete_user_ajax(request, pk):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+@allowed_users(allowed_roles=['manager', 'waiter'])
+def create_order_simple(request):
+    """Simple form-based order creation"""
+    if request.method == 'POST':
+        # Get form data
+        table_number = request.POST.get('table_number')
+        special_instructions = request.POST.get('special_instructions', '')
+        selected_items = request.POST.getlist('menu_items')
+        
+        if not table_number or not selected_items:
+            messages.error(request, 'Please select a table and at least one menu item')
+            return redirect('staff:menu')
+        
+        try:
+            # Create order
+            order = Order.objects.create(
+                table_number=table_number,
+                waiter=request.user,
+                special_instructions=special_instructions,
+                status='pending',
+                created_at=timezone.now(),
+                updated_at=timezone.now()
+            )
+            
+            # Add order items
+            for item_id in selected_items:
+                menu_item = get_object_or_404(MenuItem, id=item_id)
+                quantity = int(request.POST.get(f'quantity_{item_id}', 1))
+                notes = request.POST.get(f'notes_{item_id}', '')
+                
+                OrderItem.objects.create(
+                    order=order,
+                    menu_item=menu_item,
+                    quantity=quantity,
+                    notes=notes
+                )
+            
+            messages.success(request, f'Order #{order.id} created successfully!')
+            return redirect('staff:order_details', order_id=order.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error creating order: {str(e)}')
+            return redirect('staff:menu')
+    
+    # GET requests should be redirected to the menu page
+    return redirect('staff:menu')

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">Kitchen Dashboard</h1>
+    
+    <div class="row">
+        <!-- Pending Orders -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0 d-flex justify-content-between">
+                        <span>Pending Orders</span>
+                        <span class="badge bg-light text-dark">{{ pending_orders|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if pending_orders %}
+                        {% for order in pending_orders %}
+                            <div class="order-card p-3 border-bottom">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h6>Order #{{ order.id }} - Table {{ order.table_number }}</h6>
+                                    <small class="text-muted">{{ order.created_at|timesince }} ago</small>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <strong>Items:</strong>
+                                    <ul class="list-unstyled ms-3 mb-3">
+                                        {% for item in order.items.all %}
+                                            <li>
+                                                <span class="badge bg-secondary">{{ item.quantity }}x</span>
+                                                {{ item.menu_item.name }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <form action="{% url 'staff:update_order_status' order.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="in_progress">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Start Preparing
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            No pending orders
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- In Progress Orders -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0 d-flex justify-content-between">
+                        <span>In Progress</span>
+                        <span class="badge bg-light text-dark">{{ in_progress_orders|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if in_progress_orders %}
+                        {% for order in in_progress_orders %}
+                            <div class="order-card p-3 border-bottom">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h6>Order #{{ order.id }} - Table {{ order.table_number }}</h6>
+                                    <small class="text-muted">{{ order.created_at|timesince }} ago</small>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <strong>Items:</strong>
+                                    <ul class="list-unstyled ms-3 mb-3">
+                                        {% for item in order.items.all %}
+                                            <li>
+                                                <span class="badge bg-secondary">{{ item.quantity }}x</span>
+                                                {{ item.menu_item.name }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <form action="{% url 'staff:update_order_status' order.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="ready">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        Mark as Ready
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            No orders in progress
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ready for Pickup Orders -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0 d-flex justify-content-between">
+                        <span>Ready for Pickup</span>
+                        <span class="badge bg-light text-dark">{{ ready_orders|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if ready_orders %}
+                        {% for order in ready_orders %}
+                            <div class="order-card p-3 border-bottom">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h6>Order #{{ order.id }} - Table {{ order.table_number }}</h6>
+                                    <small class="text-muted">{{ order.updated_at|timesince }} ago</small>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <strong>Items:</strong>
+                                    <ul class="list-unstyled ms-3 mb-3">
+                                        {% for item in order.items.all %}
+                                            <li>
+                                                <span class="badge bg-secondary">{{ item.quantity }}x</span>
+                                                {{ item.menu_item.name }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <div class="d-flex">
+                                    <a href="{% url 'staff:order_details' order.id %}" class="btn btn-outline-primary flex-grow-1 me-2">
+                                        View Details
+                                    </a>
+                                    <form action="{% url 'staff:update_order_status' order.id %}" method="post" class="flex-grow-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            Mark as Delivered
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            No orders ready for pickup
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-card {
+        transition: background-color 0.3s;
+    }
+    
+    .order-card:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+    
+    .card-body {
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh the page every 60 seconds to show new orders
+        setTimeout(function() {
+            location.reload();
+        }, 60000);
+    });
+</script>
+{% endblock %}

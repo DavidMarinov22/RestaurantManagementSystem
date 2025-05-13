@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1>Restaurant Menu</h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'staff:orders' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> View Orders
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Menu Categories Sidebar -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Categories</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for category, items in menu_by_category.items %}
+                            <button class="list-group-item list-group-item-action category-tab {% if forloop.first %}active{% endif %}" 
+                                    data-category="{{ category|slugify }}">
+                                {{ category }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu Items Main Content -->
+        <div class="col-md-9">
+            <form method="post" action="{% url 'staff:create_order_simple' %}" id="order-form">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Menu Categories -->
+                        {% for category, items in menu_by_category.items %}
+                        <div class="menu-category card mb-4 {% if forloop.first %}active{% endif %}" id="category-{{ category|slugify }}">
+                            <div class="card-header">
+                                <h5 class="mb-0">{{ category }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for item in items %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title d-flex justify-content-between">
+                                                    {{ item.name }}
+                                                    <span class="badge bg-success">£{{ item.price }}</span>
+                                                </h5>
+                                                <p class="card-text text-muted small">{{ item.description }}</p>
+                                                
+                                                <div class="form-check">
+                                                    <input class="form-check-input menu-item-checkbox" type="checkbox" 
+                                                           name="menu_items" value="{{ item.id }}" 
+                                                           id="item-{{ item.id }}"
+                                                           data-price="{{ item.price }}"
+                                                           data-name="{{ item.name }}">
+                                                    <label class="form-check-label" for="item-{{ item.id }}">
+                                                        Add to order
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="item-options mt-2" style="display: none;">
+                                                    <div class="input-group input-group-sm mb-2">
+                                                        <span class="input-group-text">Qty</span>
+                                                        <input type="number" class="form-control item-quantity" 
+                                                               name="quantity_{{ item.id }}" min="1" value="1">
+                                                    </div>
+                                                    <div class="form-floating">
+                                                        <textarea class="form-control form-control-sm item-notes" 
+                                                                  name="notes_{{ item.id }}" 
+                                                                  placeholder="Special instructions" 
+                                                                  style="height: 60px"></textarea>
+                                                        <label>Notes</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Order Summary -->
+                    <div class="col-md-4">
+                        <div class="card sticky-top" style="top: 20px;">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Your Order</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="table-number" class="form-label">Table Number:</label>
+                                    <select id="table-number" name="table_number" class="form-select" required>
+                                        <option value="">Select a table</option>
+                                        {% for table in tables %}
+                                            <option value="{{ table }}">Table {{ table }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="special-instructions" class="form-label">Special Instructions:</label>
+                                    <textarea id="special-instructions" name="special_instructions" class="form-control" rows="2"></textarea>
+                                </div>
+                                
+                                <div id="order-summary" class="mb-3 p-3 border rounded bg-light">
+                                    <h6>Selected Items:</h6>
+                                    <ul id="selected-items-list">
+                                        <li class="text-muted">No items selected</li>
+                                    </ul>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total:</strong>
+                                        <span id="order-total">£0.00</span>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="submit-order" class="btn btn-success w-100">
+                                    <i class="fas fa-check-circle"></i> Place Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .menu-category {
+        display: none;
+    }
+    
+    .menu-category.active {
+        display: block;
+    }
+    
+    .sticky-top {
+        z-index: 100;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle between menu categories
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const menuCategories = document.querySelectorAll('.menu-category');
+        
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                categoryTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding category
+                const categoryId = this.dataset.category;
+                menuCategories.forEach(category => {
+                    category.classList.remove('active');
+                    if (category.id === 'category-' + categoryId) {
+                        category.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // Handle item checkboxes
+        const itemCheckboxes = document.querySelectorAll('.menu-item-checkbox');
+        const selectedItemsList = document.getElementById('selected-items-list');
+        const orderTotalElement = document.getElementById('order-total');
+        
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const itemId = this.value;
+                const itemName = this.dataset.name;
+                const itemPrice = parseFloat(this.dataset.price);
+                const optionsContainer = this.closest('.card-body').querySelector('.item-options');
+                
+                if (this.checked) {
+                    optionsContainer.style.display = 'block';
+                } else {
+                    optionsContainer.style.display = 'none';
+                }
+                
+                updateOrderSummary();
+            });
+        });
+        
+        // Listen for quantity changes
+        document.querySelectorAll('.item-quantity').forEach(input => {
+            input.addEventListener('change', updateOrderSummary);
+            input.addEventListener('input', updateOrderSummary);
+        });
+        
+        // Update order summary
+        function updateOrderSummary() {
+            let total = 0;
+            let hasItems = false;
+            let summaryHTML = '';
+            
+            itemCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    hasItems = true;
+                    const itemId = checkbox.value;
+                    const itemName = checkbox.dataset.name;
+                    const itemPrice = parseFloat(checkbox.dataset.price);
+                    const quantityInput = document.querySelector(`[name="quantity_${itemId}"]`);
+                    const quantity = parseInt(quantityInput.value) || 1;
+                    const itemTotal = itemPrice * quantity;
+                    
+                    total += itemTotal;
+                    
+                    summaryHTML += `
+                        <li>
+                            <div class="d-flex justify-content-between">
+                                <span>${itemName} × ${quantity}</span>
+                                <span>£${itemTotal.toFixed(2)}</span>
+                            </div>
+                        </li>
+                    `;
+                }
+            });
+            
+            if (hasItems) {
+                selectedItemsList.innerHTML = summaryHTML;
+            } else {
+                selectedItemsList.innerHTML = '<li class="text-muted">No items selected</li>';
+            }
+            
+            orderTotalElement.textContent = `£${total.toFixed(2)}`;
+        }
+        
+        // Form submission validation
+        const orderForm = document.getElementById('order-form');
+        orderForm.addEventListener('submit', function(e) {
+            const tableNumber = document.getElementById('table-number').value;
+            let hasSelectedItems = false;
+            
+            itemCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    hasSelectedItems = true;
+                }
+            });
+            
+            if (!tableNumber) {
+                e.preventDefault();
+                alert('Please select a table number');
+                return false;
+            }
+            
+            if (!hasSelectedItems) {
+                e.preventDefault();
+                alert('Please select at least one menu item');
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>
+{% endblock %}
