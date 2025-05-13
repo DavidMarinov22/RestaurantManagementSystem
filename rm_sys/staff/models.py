@@ -48,6 +48,14 @@ class Category(models.Model):
         return self.name
 
 class InventoryItem(models.Model):
+    UNIT_CHOICES = [
+        ('kg', 'Kilogram'),
+        ('g', 'Gram'),
+        ('l', 'Liter'),
+        ('ml', 'Milliliter'),
+        ('unit', 'Unit'),
+    ]
+
     name = models.CharField(max_length=200)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
@@ -55,7 +63,7 @@ class InventoryItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     last_updated = models.DateTimeField(auto_now=True)
     reorder_level = models.DecimalField(max_digits=10, decimal_places=2)
-    unit = models.CharField(max_length=10)
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='unit')
 
     def __str__(self):
         return self.name

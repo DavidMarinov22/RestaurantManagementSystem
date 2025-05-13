@@ -33,7 +33,7 @@ ORDER_STATUS_CHOICES = [
     ('cancelled', 'Cancelled')
 ]
 
-@allowed_users(allowed_roles=['manager', 'waiter', 'inventory'])
+@allowed_users(allowed_roles=['manager', 'inventory'])
 def inventoryPage(request):
     query = request.GET.get('q')
     items = InventoryItem.objects.all().order_by('name')
@@ -97,11 +97,33 @@ def add_category(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Category added successfully!')
-            return redirect('inventory/categories.html')
+            return redirect('staff:inventory_list')
     else:
         form = CategoryForm()
     
     return render(request, 'inventory/add_category.html', {'form': form})
+
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category updated successfully!')
+            return redirect('staff:category_list')
+    else:
+        form = CategoryForm(instance=category)
+    
+    return render(request, 'inventory/edit_category.html', {'form': form, 'category': category})
+
+def delete_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Category deleted successfully!')
+        return redirect('staff:category_list')
+    
+    return render(request, 'inventory/confirm_delete_category.html', {'category': category})
 
 @allowed_users(allowed_roles=['manager', 'waiter', 'kitchen'])
 def orderPage(request):

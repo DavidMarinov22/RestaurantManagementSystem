@@ -6,7 +6,7 @@ from .views import (
     add_item, edit_item, delete_item, category_list, add_category,
     # New order management views
     menuPage, create_order, kitchenPage, update_order_status, order_details,create_order_simple,
-    add_schedule, edit_schedule, delete_schedule, request_schedule_change, review_schedule_request
+    add_schedule, edit_schedule, delete_schedule, request_schedule_change, review_schedule_request,edit_category,delete_category
 )
 
 urlpatterns = [
@@ -26,6 +26,8 @@ urlpatterns = [
     path('inventory/delete/<int:item_id>/', delete_item, name='delete_item'),
     path('inventory/categories/', category_list, name='category_list'),
     path('inventory/categories/add/', add_category, name='add_category'),
+    path('inventory/categories/edit/<int:category_id>/', edit_category, name='edit_category'),
+    path('inventory/categories/delete/<int:category_id>/', delete_category, name='delete_category'),
     
     # Accounts
     path('user/create/', create_user_ajax, name='user_create'),
